@@ -1,3 +1,6 @@
+# Procman ROS
+Porting of the orignal [Procman](https://github.com/ashuang/procman) package to ROS.
+
 # Procman
 
 Procman is a tool for managing many processes distributed over one or more
@@ -40,31 +43,20 @@ computers. There are several ways to use procman:
   comparable to the Python subprocess module.
 
 ## Build Instructions
+The package has been catkinized. To compile it, just run:
+```
+catkin build procman_ros
+```
+in your workspace
 
 ### Dependencies
-
- * [LCM](http://lcm-proj.github.io)
+ * rocpp
+ * rospy
  * Python
  * PyGTK  (procman-sheriff is written in Python with PyGTK)
 
 Currently only tested on GNU/Linux.  Some stuff will definitely only work on
 Linux (e.g., the process memory, CPU statistics).
-
-### Local Install
-
-After cloning procman, create and move a build directory 
-
-```sh
-mkdir build
-cd build
-```
-
-Now run cmake (optionally use `-DCMAKE_INSTALL_PREFIX` to change the local install directory from `/usr/local` to a different directory):
-
-```sh
-cmake ..
-make
-```
 
 ### Documentation
 
@@ -74,5 +66,9 @@ make
   cd doc
   doxygen
   ```
+## Credits
+- [Original program](https://github.com/ashuang/procman)  by [Albert Huang](https://github.com/ashuang). 
+- Catkinization and porting from LCM to ROS by Marco Camurri
 
-
+## License
+This software is released under the LGPLv2.1 Software License. See the LICENSE for more details.
