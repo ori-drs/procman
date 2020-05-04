@@ -21,9 +21,9 @@
 
 #include <algorithm>
 
-#include "exec_string_utils.hpp"
-#include "procman.hpp"
-#include "procinfo.hpp"
+#include "procman/exec_string_utils.hpp"
+#include "procman/procman.hpp"
+#include "procman/procinfo.hpp"
 
 namespace procman {
 

@@ -19,13 +19,16 @@
 #include <set>
 
 #include "procman_deputy.hpp"
-
-using procman_lcm::cmd_desired_t;
-using procman_lcm::deputy_info_t;
-using procman_lcm::output_t;
-using procman_lcm::discovery_t;
-using procman_lcm::deputy_info_t;
-using procman_lcm::orders_t;
+using procman_ros::ProcmanCmdDesired;
+using procman_ros::ProcmanCmdDesiredConstPtr;
+using procman_ros::ProcmanDeputyInfoConstPtr;
+using procman_ros::ProcmanOutputConstPtr;
+using procman_ros::ProcmanDiscovery;
+using procman_ros::ProcmanDiscoveryConstPtr;
+using procman_ros::ProcmanDeputyInfo;
+using procman_ros::ProcmanDeputyInfoConstPtr;
+using procman_ros::ProcmanOrders;
+using procman_ros::ProcmanOrdersConstPtr;
 
 namespace procman {
 
@@ -120,20 +123,19 @@ DeputyOptions DeputyOptions::Defaults() {
 
 ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
   options_(options),
-  lcm_(nullptr),
   event_loop_(),
   deputy_id_(options.deputy_id),
   cpu_load_(-1),
   deputy_start_time_(timestamp_now()),
   deputy_pid_(getpid()),
-  discovery_sub_(nullptr),
-  info_sub_(nullptr),
-  orders_sub_(nullptr),
+  //TODO discovery_sub_(nullptr),
+  //TODO info_sub_(nullptr),
+  //TODO orders_sub_(nullptr),
   discovery_timer_(),
   one_second_timer_(),
   introspection_timer_(),
   quit_timer_(),
-  lcm_notifier_(nullptr),
+  //TODO lcm_notifier_(nullptr),
   commands_(),
   exiting_(false),
   last_output_transmit_utime_(0),
@@ -142,16 +144,12 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
   pm_ = new Procman();
 
   // Initialize LCM
-  lcm_ = new lcm::LCM(options.lcm_url);
-  if (!lcm_) {
-    throw std::runtime_error("error initializing LCM.");
-  }
 
   // Setup initial LCM subscriptions
-  info_sub_ = lcm_->subscribe("PM_INFO", &ProcmanDeputy::InfoReceived, this);
+  //info_sub_ = lcm_->subscribe("PM_INFO", &ProcmanDeputy::InfoReceived, this);
 
-  discovery_sub_ = lcm_->subscribe("PM_DISCOVER",
-      &ProcmanDeputy::DiscoveryReceived, this);
+  //discovery_sub_ = lcm_->subscribe("PM_DISCOVER",
+  //    &ProcmanDeputy::DiscoveryReceived, this);
 
   // Setup timers
 
@@ -175,8 +173,8 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
   event_loop_.SetPosixSignals({ SIGINT, SIGHUP, SIGQUIT, SIGTERM, SIGCHLD },
       std::bind(&ProcmanDeputy::OnPosixSignal, this, std::placeholders::_1));
 
-  lcm_notifier_ = event_loop_.AddSocket(lcm_->getFileno(),
-      EventLoop::kRead, [this]() { lcm_->handle(); });
+  //TODO lcm_notifier_ = event_loop_.AddSocket(lcm_->getFileno(),
+  //TODO     EventLoop::kRead, [this]() { lcm_->handle(); });
 
   output_msg_.deputy_id = deputy_id_;
   output_msg_.num_commands = 0;
@@ -186,19 +184,19 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
 
 ProcmanDeputy::~ProcmanDeputy() {
   // unsubscribe
-  if(orders_sub_) {
-    lcm_->unsubscribe(orders_sub_);
-  }
-  if(info_sub_) {
-    lcm_->unsubscribe(info_sub_);
-  }
-  if(discovery_sub_) {
-    lcm_->unsubscribe(discovery_sub_);
-  }
+  //TODO if(orders_sub_) {
+  //TODO   lcm_->unsubscribe(orders_sub_);
+  //TODO }
+  //TODO if(info_sub_) {
+  //TODO   lcm_->unsubscribe(info_sub_);
+  //TODO }
+  //TODO if(discovery_sub_) {
+  //TODO   lcm_->unsubscribe(discovery_sub_);
+  //TODO }
   for (auto item : commands_) {
     delete item.second;
   }
-  delete lcm_;
+  //delete lcm_;
   delete pm_;
 }
 
@@ -249,13 +247,13 @@ void ProcmanDeputy::MaybePublishOutputMessage() {
     abs(static_cast<int>(timestamp_now() - last_output_transmit_utime_)) / 1000;
 
   if (output_buf_size_ > 4096 || (ms_since_last_transmit >= 10)) {
-    output_msg_.utime = timestamp_now();
-    lcm_->publish("PM_OUTPUT", &output_msg_);
+    output_msg_.timestamp = ros::Time::now();
+    //TODO lcm_->publish("PM_OUTPUT", &output_msg_);
     output_msg_.num_commands = 0;
     output_msg_.command_ids.clear();
     output_msg_.text.clear();
     output_buf_size_ = 0;
-    last_output_transmit_utime_ = output_msg_.utime;
+    last_output_transmit_utime_ = output_msg_.timestamp.toNSec() * 1e-3;
   }
 }
 
@@ -430,8 +428,8 @@ void ProcmanDeputy::OnQuitTimer() {
 
 void ProcmanDeputy::TransmitProcessInfo() {
   // build a deputy info message
-  deputy_info_t msg;
-  msg.utime = timestamp_now();
+  ProcmanDeputyInfo msg;
+  msg.timestamp = ros::Time::now();
   msg.deputy_id = deputy_id_;
   msg.cpu_load = cpu_load_;
   msg.phys_mem_total_bytes = cpu_time_[1].memtotal;
@@ -465,7 +463,7 @@ void ProcmanDeputy::TransmitProcessInfo() {
   if (options_.verbose) {
     dbgt ("transmitting deputy info!\n");
   }
-  lcm_->publish("PM_INFO", &msg);
+  //TODO lcm_->publish("PM_INFO", &msg);
 }
 
 void ProcmanDeputy::UpdateCpuTimes() {
@@ -596,7 +594,7 @@ void ProcmanDeputy::OnPosixSignal(int signum) {
   }
 }
 
-static const cmd_desired_t* OrdersFindCmd (const orders_t* orders,
+static const ProcmanCmdDesired* OrdersFindCmd (const ProcmanOrdersConstPtr& orders,
     const std::string& command_id) {
   for (int i=0; i<orders->ncmds; i++) {
     if (command_id == orders->cmds[i].cmd.command_id) {
@@ -606,9 +604,7 @@ static const cmd_desired_t* OrdersFindCmd (const orders_t* orders,
   return nullptr;
 }
 
-void ProcmanDeputy::OrdersReceived(const lcm::ReceiveBuffer* rbuf,
-    const std::string& channel,
-    const orders_t* orders) {
+void ProcmanDeputy::OrdersReceived(const procman_ros::ProcmanOrdersConstPtr& orders) {
   // ignore orders if we're exiting
   if (exiting_) {
     return;
@@ -623,12 +619,12 @@ void ProcmanDeputy::OrdersReceived(const lcm::ReceiveBuffer* rbuf,
 
   // ignore stale orders (where utime is too long ago)
   int64_t now = timestamp_now ();
-  if (now - orders->utime > PROCMAN_MAX_MESSAGE_AGE_USEC) {
+  if (now - orders->timestamp.toNSec()/1000 > PROCMAN_MAX_MESSAGE_AGE_USEC) {
     for (int i=0; i<orders->ncmds; i++) {
-      const cmd_desired_t *cmd_msg = &orders->cmds[i];
-      PrintfAndTransmit(cmd_msg->cmd.command_id,
+      const ProcmanCmdDesired& cmd_msg = orders->cmds[i];
+      PrintfAndTransmit(cmd_msg.cmd.command_id,
           "ignoring stale orders (utime %d seconds ago). You may want to check the system clocks!\n",
-          (int) ((now - orders->utime) / 1000000));
+          (int) ((now - orders->timestamp.toNSec()/1000) / 1000000));
     }
     return;
   }
@@ -639,17 +635,17 @@ void ProcmanDeputy::OrdersReceived(const lcm::ReceiveBuffer* rbuf,
   if (options_.verbose)
     dbgt ("orders for me received with %d commands\n", orders->ncmds);
   for (i=0; i<orders->ncmds; i++) {
-    const cmd_desired_t* cmd_msg = &orders->cmds[i];
+    const ProcmanCmdDesired& cmd_msg = orders->cmds[i];
 
     if (options_.verbose)
       dbgt ("order %d: %s (%d, %d)\n",
-          i, cmd_msg->cmd.exec_str.c_str(),
-          cmd_msg->desired_runid, cmd_msg->force_quit);
+          i, cmd_msg.cmd.exec_str.c_str(),
+          cmd_msg.desired_runid, cmd_msg.force_quit);
 
     // do we already have this command somewhere?
     DeputyCommand *mi = nullptr;
     for (auto& item : commands_) {
-      if (item.second->cmd_id == cmd_msg->cmd.command_id) {
+      if (item.second->cmd_id == cmd_msg.cmd.command_id) {
         mi = item.second;
         break;
       }
@@ -660,15 +656,15 @@ void ProcmanDeputy::OrdersReceived(const lcm::ReceiveBuffer* rbuf,
       cmd = mi->cmd;
     } else {
       // if not, then create it.
-      cmd = pm_->AddCommand(cmd_msg->cmd.exec_str);
+      cmd = pm_->AddCommand(cmd_msg.cmd.exec_str);
 
       // allocate a private data structure
       mi = new DeputyCommand();
-      mi->cmd_id = cmd_msg->cmd.command_id;
-      mi->group = cmd_msg->cmd.group;
-      mi->auto_respawn = cmd_msg->cmd.auto_respawn;
-      mi->stop_signal = cmd_msg->cmd.stop_signal;
-      mi->stop_time_allowed = cmd_msg->cmd.stop_time_allowed;
+      mi->cmd_id = cmd_msg.cmd.command_id;
+      mi->group = cmd_msg.cmd.group;
+      mi->auto_respawn = cmd_msg.cmd.auto_respawn;
+      mi->stop_signal = cmd_msg.cmd.stop_signal;
+      mi->stop_time_allowed = cmd_msg.cmd.stop_time_allowed;
       mi->last_start_time = 0;
       mi->respawn_backoff_ms = MIN_RESPAWN_DELAY_MS;
       mi->stdout_notifier.reset();
@@ -695,58 +691,58 @@ void ProcmanDeputy::OrdersReceived(const lcm::ReceiveBuffer* rbuf,
 
     // rename a command?  does not kill a running command, so effect does
     // not apply until command is restarted.
-    if (cmd->ExecStr() != cmd_msg->cmd.exec_str) {
+    if (cmd->ExecStr() != cmd_msg.cmd.exec_str) {
       dbgt ("[%s] exec str -> [%s]\n", mi->cmd_id.c_str(),
-          cmd_msg->cmd.exec_str.c_str());
-      pm_->SetCommandExecStr(cmd, cmd_msg->cmd.exec_str);
+          cmd_msg.cmd.exec_str.c_str());
+      pm_->SetCommandExecStr(cmd, cmd_msg.cmd.exec_str);
 
       action_taken = 1;
     }
 
     // has auto-respawn changed?
-    if (cmd_msg->cmd.auto_respawn != mi->auto_respawn) {
+    if (cmd_msg.cmd.auto_respawn != mi->auto_respawn) {
       dbgt ("[%s] auto-respawn -> %d\n", mi->cmd_id.c_str(),
-          cmd_msg->cmd.auto_respawn);
-      mi->auto_respawn = cmd_msg->cmd.auto_respawn;
+          cmd_msg.cmd.auto_respawn);
+      mi->auto_respawn = cmd_msg.cmd.auto_respawn;
     }
 
     // change the group of a command?
-    if (cmd_msg->cmd.group != mi->group) {
+    if (cmd_msg.cmd.group != mi->group) {
       dbgt ("[%s] group -> [%s]\n", mi->cmd_id.c_str(),
-          cmd_msg->cmd.group.c_str());
-      mi->group = cmd_msg->cmd.group;
+          cmd_msg.cmd.group.c_str());
+      mi->group = cmd_msg.cmd.group;
       action_taken = 1;
     }
 
     // change the stop signal of a command?
-    if(mi->stop_signal != cmd_msg->cmd.stop_signal) {
+    if(mi->stop_signal != cmd_msg.cmd.stop_signal) {
       dbg("[%s] stop signal -> [%d]\n", mi->cmd_id.c_str(),
-          cmd_msg->cmd.stop_signal);
-      mi->stop_signal = cmd_msg->cmd.stop_signal;
+          cmd_msg.cmd.stop_signal);
+      mi->stop_signal = cmd_msg.cmd.stop_signal;
     }
 
     // change the stop time allowed of a command?
-    if(mi->stop_time_allowed != cmd_msg->cmd.stop_time_allowed) {
+    if(mi->stop_time_allowed != cmd_msg.cmd.stop_time_allowed) {
       dbg("[%s] stop time allowed -> [%f]\n", mi->cmd_id.c_str(),
-          cmd_msg->cmd.stop_time_allowed);
-      mi->stop_time_allowed = cmd_msg->cmd.stop_time_allowed;
+          cmd_msg.cmd.stop_time_allowed);
+      mi->stop_time_allowed = cmd_msg.cmd.stop_time_allowed;
     }
 
-    mi->should_be_running = !cmd_msg->force_quit;
+    mi->should_be_running = !cmd_msg.force_quit;
 
     if (PROCMAN_CMD_STOPPED == cmd_status &&
-        (mi->actual_runid != cmd_msg->desired_runid) &&
+        (mi->actual_runid != cmd_msg.desired_runid) &&
          mi->should_be_running) {
-      StartCommand(mi, cmd_msg->desired_runid);
+      StartCommand(mi, cmd_msg.desired_runid);
       action_taken = 1;
     } else if (PROCMAN_CMD_RUNNING == cmd_status &&
         ((!mi->should_be_running) ||
-         (cmd_msg->desired_runid != mi->actual_runid &&
-          cmd_msg->desired_runid != 0))) {
+         (cmd_msg.desired_runid != mi->actual_runid &&
+          cmd_msg.desired_runid != 0))) {
       StopCommand(mi);
       action_taken = 1;
-    } else if (cmd_msg->desired_runid != 0) {
-      mi->actual_runid = cmd_msg->desired_runid;
+    } else if (cmd_msg.desired_runid != 0) {
+      mi->actual_runid = cmd_msg.desired_runid;
     }
   }
 
@@ -756,7 +752,7 @@ void ProcmanDeputy::OrdersReceived(const lcm::ReceiveBuffer* rbuf,
   for (auto& item : commands_) {
     DeputyCommand* mi = item.second;
     ProcmanCommandPtr cmd = item.first;
-    const cmd_desired_t *cmd_msg = OrdersFindCmd (orders, mi->cmd_id);
+    const ProcmanCmdDesired *cmd_msg = OrdersFindCmd (orders, mi->cmd_id);
 
     if (! cmd_msg) {
       // push the orphaned command into a list first.  remove later, to
@@ -790,8 +786,7 @@ void ProcmanDeputy::OrdersReceived(const lcm::ReceiveBuffer* rbuf,
   }
 }
 
-void ProcmanDeputy::DiscoveryReceived(const lcm::ReceiveBuffer* rbuf,
-    const std::string& channel, const discovery_t* msg) {
+void ProcmanDeputy::DiscoveryReceived(const procman_ros::ProcmanDiscoveryConstPtr& msg) {
   const int64_t now = timestamp_now();
   if(now < deputy_start_time_ + DISCOVERY_TIME_MS * 1000) {
     // received a discovery message while still in discovery mode.  Check to
@@ -808,8 +803,7 @@ void ProcmanDeputy::DiscoveryReceived(const lcm::ReceiveBuffer* rbuf,
   }
 }
 
-void ProcmanDeputy::InfoReceived(const lcm::ReceiveBuffer* rbuf,
-    const std::string& channel, const deputy_info_t* msg) {
+void ProcmanDeputy::InfoReceived(const ProcmanDeputyInfoConstPtr& msg) {
   int64_t now = timestamp_now();
   if(now < deputy_start_time_ + DISCOVERY_TIME_MS * 1000) {
     // A different deputy has reported while we're still in discovery mode.
@@ -828,11 +822,11 @@ void ProcmanDeputy::OnDiscoveryTimer() {
   const int64_t now = timestamp_now();
   if(now < deputy_start_time_ + DISCOVERY_TIME_MS * 1000) {
     // Publish a discover message to check for conflicting deputies
-    discovery_t msg;
-    msg.utime = now;
+    ProcmanDiscovery msg;
+    msg.timestamp = ros::Time::now();
     msg.transmitter_id = deputy_id_;
     msg.nonce = deputy_pid_;
-    lcm_->publish("PM_DISCOVER", &msg);
+    //TODO lcm_->publish("PM_DISCOVER", &msg);
   } else {
 //    dbgt("Discovery period finished. Activating deputy.");
 
@@ -840,11 +834,11 @@ void ProcmanDeputy::OnDiscoveryTimer() {
     // start subscribing to sheriff orders.
     discovery_timer_->Stop();
 
-    lcm_->unsubscribe(info_sub_);
-    info_sub_ = NULL;
+    //TODO lcm_->unsubscribe(info_sub_);
+    //TODO info_sub_ = NULL;
 
-    orders_sub_ = lcm_->subscribe("PM_ORDERS",
-        &ProcmanDeputy::OrdersReceived, this);
+    //TODO orders_sub_ = lcm_->subscribe("PM_ORDERS",
+    //TODO     &ProcmanDeputy::OrdersReceived, this);
 
     // Start the timer to periodically transmit status information
     one_second_timer_->Start();

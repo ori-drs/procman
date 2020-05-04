@@ -4,18 +4,15 @@
 #include <set>
 #include <string>
 
+#include <lcm/lcm-cpp.hpp>
 
-//#include <procman_ros/  lcmtypes/procman_lcm/orders_t.hpp>
-//#include <procman_ros/  lcmtypes/procman_lcm/discovery_t.hpp>
-//#include <procman_ros/  lcmtypes/procman_lcm/deputy_info_t.hpp>
-//#include <procman_ros/  lcmtypes/procman_lcm/output_t.hpp>
+#include <lcmtypes/procman_lcm/orders_t.hpp>
+#include <lcmtypes/procman_lcm/discovery_t.hpp>
+#include <lcmtypes/procman_lcm/deputy_info_t.hpp>
+#include <lcmtypes/procman_lcm/output_t.hpp>
 
-#include "procman_ros/event_loop.hpp"
+#include "event_loop.hpp"
 #include "procman/procman.hpp"
-#include <procman_ros/ProcmanOrders.h>
-#include <procman_ros/ProcmanDiscovery.h>
-#include <procman_ros/ProcmanDeputyInfo.h>
-#include <procman_ros/ProcmanOutput.h>
 
 namespace procman {
 
@@ -37,10 +34,12 @@ class ProcmanDeputy {
     void Run();
 
   private:
-    // lcm callbacks now converted to ROS callbacks
-    void OrdersReceived(const procman_ros::ProcmanOrdersConstPtr& orders);
-    void DiscoveryReceived(const procman_ros::ProcmanDiscoveryConstPtr& msg);
-    void InfoReceived(const procman_ros::ProcmanDeputyInfoConstPtr& msg);
+    void OrdersReceived(const lcm::ReceiveBuffer* rbuf, const std::string& channel,
+        const procman_lcm::orders_t* orders);
+    void DiscoveryReceived(const lcm::ReceiveBuffer* rbuf,
+        const std::string& channel, const procman_lcm::discovery_t* msg);
+    void InfoReceived(const lcm::ReceiveBuffer* rbuf,
+        const std::string& channel, const procman_lcm::deputy_info_t* msg);
 
     void OnDiscoveryTimer();
 
@@ -76,7 +75,7 @@ class ProcmanDeputy {
 
     Procman* pm_;
 
-    //TODO lcm::LCM* lcm_;
+    lcm::LCM* lcm_;
 
     EventLoop event_loop_;
 
@@ -88,9 +87,9 @@ class ProcmanDeputy {
     int64_t deputy_start_time_;
     pid_t deputy_pid_;
 
-    //TODO lcm::Subscription* discovery_sub_;
-    //TODO lcm::Subscription* info_sub_;
-    //TODO lcm::Subscription* orders_sub_;
+    lcm::Subscription* discovery_sub_;
+    lcm::Subscription* info_sub_;
+    lcm::Subscription* orders_sub_;
 
     TimerPtr discovery_timer_;
     TimerPtr one_second_timer_;
@@ -106,7 +105,7 @@ class ProcmanDeputy {
 
     int64_t last_output_transmit_utime_;
     int output_buf_size_;
-    procman_ros::ProcmanOutput output_msg_;
+    procman_lcm::output_t output_msg_;
 };
 
 }  // namespace procman

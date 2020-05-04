@@ -16,7 +16,7 @@
 
 #include <map>
 
-#include "procinfo.hpp"
+#include "procman/procinfo.hpp"
 
 namespace procman {
 

@@ -25,13 +25,11 @@ add_message_files(FILES  ProcmanCmdDesired.msg
 ## Generate added messages and services with any dependencies listed here
 generate_messages()
 
-catkin_package(INCLUDE_DIRS include/procman_ros
-                            include/procman
+catkin_package(INCLUDE_DIRS include
                LIBRARIES procman
                CATKIN_DEPENDS message_runtime roscpp rospy)
 
-include_directories(include/procman
-                    include
+include_directories(include
                     ${catkin_INCLUDE_DIRS})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -43,6 +41,18 @@ endif()
 add_library(procman SHARED src/procman/exec_string_utils.cpp
                            src/procman/${procinfo_cpp}
                            src/procman/procman.cpp)
+target_link_libraries(procman util)
+
+add_executable(procman_deputy
+               src/procman_ros/event_loop.cpp
+               src/procman_ros/procman_deputy.cpp)
+
+target_link_libraries(procman_deputy procman ${catkin_LIBRARIES})
+
+add_dependencies(procman_deputy ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(event_loop_test src/procman_ros/event_loop_test.cpp 
+                               src/procman_ros/event_loop.cpp)
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -52,7 +62,7 @@ add_library(procman SHARED src/procman/exec_string_utils.cpp
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
