@@ -11,7 +11,7 @@ find_package(catkin REQUIRED COMPONENTS message_generation
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+catkin_python_setup()
 
 ## Generate messages in the 'msg' folder
 add_message_files(FILES  ProcmanCmdDesired.msg
@@ -26,7 +26,7 @@ add_message_files(FILES  ProcmanCmdDesired.msg
 generate_messages()
 
 catkin_package(INCLUDE_DIRS include
-               LIBRARIES procman
+               LIBRARIES procman_ros
                CATKIN_DEPENDS message_runtime roscpp rospy)
 
 include_directories(include
@@ -38,18 +38,18 @@ else()
   set(procinfo_cpp procinfo_generic.cpp)
 endif()
 
-add_library(procman SHARED src/procman/exec_string_utils.cpp
+add_library(procman_ros SHARED src/procman/exec_string_utils.cpp
                            src/procman/${procinfo_cpp}
                            src/procman/procman.cpp)
-target_link_libraries(procman util)
+target_link_libraries(procman_ros util)
 
-add_executable(procman_deputy
+add_executable(procman_ros_deputy
                src/procman_ros/event_loop.cpp
                src/procman_ros/procman_deputy.cpp)
 
-target_link_libraries(procman_deputy procman ${catkin_LIBRARIES})
+target_link_libraries(procman_ros_deputy procman_ros ${catkin_LIBRARIES})
 
-add_dependencies(procman_deputy ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(procman_ros_deputy ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(event_loop_test src/procman_ros/event_loop_test.cpp 
                                src/procman_ros/event_loop.cpp)
@@ -105,6 +105,25 @@ add_executable(event_loop_test src/procman_ros/event_loop_test.cpp
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 # )
+
+# Install the python sheriff script to bin so that it does not have to be called
+# with rosrun
+#set(procman_ros_sheriff ${CMAKE_INSTALL_PREFIX}/procman-ros-sheriff)
+#message(${procman_ros_sheriff})
+#message(${CMAKE_INSTALL_PREFIX})
+#file(WRITE ${procman_ros_sheriff}
+#           "#!/usr/bin/env python2\n"
+#           "import sys\n"
+#           "sys.path.append('${CMAKE_INSTALL_PREFIX}/${py_install_dir}')\n"
+#           "import procman_ros.sheriff_gtk.sheriff_gtk\n"
+#           "procman_ros.sheriff_gtk.sheriff_gtk.main()\n")
+#catkin_install_python(PROGRAMS ${procman_ros_sheriff} DESTINATION bin)
+
+# This is used to find some files required to construct the GUI
+#set(build_prefix_py ${CMAKE_CURRENT_BINARY_DIR}/src/procman/build_prefix.py)
+#file(WRITE ${build_prefix_py}
+#     "BUILD_PREFIX='${CMAKE_INSTALL_PREFIX}'\n")
+#install(FILES ${build_prefix_py} DESTINATION ${py_install_dir}/procman)
 
 ## Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}/

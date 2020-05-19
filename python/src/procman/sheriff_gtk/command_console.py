@@ -6,7 +6,7 @@ import gtk
 import pango
 
 from procman.sheriff import SheriffListener
-from procman_lcm.output_t import output_t
+from procman_ros.msg import ProcmanOutput
 
 DEFAULT_MAX_KB_PER_SECOND = 500
 
@@ -301,7 +301,7 @@ class SheriffCommandConsole(gtk.ScrolledWindow, SheriffListener):
         self._add_text_to_buffer(extradata.tb, toadd)
 
     def on_procman_output(self, channel, data):
-        msg = output_t.decode(data)
+        msg = ProcmanOutput.decode(data)
         for i in range(msg.num_commands):
             command_id = msg.command_ids[i]
             text = msg.text[i]

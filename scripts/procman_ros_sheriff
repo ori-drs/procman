@@ -1,0 +1,3 @@
+#!/usr/bin/env python
+import procman.sheriff_gtk.sheriff_gtk
+procman.sheriff_gtk.sheriff_gtk.main()

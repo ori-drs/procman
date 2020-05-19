@@ -2,7 +2,6 @@
 
 import os
 import sys
-import time
 import traceback
 import getopt
 import subprocess
@@ -12,7 +11,6 @@ import pickle
 import glib
 import gobject
 import gtk
-import pango
 
 from lcm import LCM
 

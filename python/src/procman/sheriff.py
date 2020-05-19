@@ -8,15 +8,15 @@ import sys
 import time
 import signal
 import threading
-import thread
 
 import lcm
-from procman_lcm.cmd_t import cmd_t
-from procman_lcm.deputy_info_t import deputy_info_t
-from procman_lcm.orders_t import orders_t
-from procman_lcm.cmd_desired_t import cmd_desired_t
-from procman_lcm.cmd_status_t import cmd_status_t
-from procman_lcm.discovery_t import discovery_t
+from procman_ros.msg import ProcmanCmd
+from procman_ros.msg import ProcmanDeputyInfo
+from procman_ros.msg import ProcmanOrders
+from procman_ros.msg import ProcmanCmdDesired
+from procman_ros.msg import ProcmanCmdStatus
+from procman_ros.msg import ProcmanDiscovery
+
 import procman.sheriff_config as sheriff_config
 
 def _dbg(text):
@@ -426,8 +426,8 @@ class Deputy(object):
         return ((cmd, old_status, new_status),)
 
     def _make_orders_message(self, sheriff_id):
-        msg = orders_t()
-        msg.utime = _now_utime()
+        msg = ProcmanOrders()
+        msg.timestamp = _now_utime()
         msg.deputy_id = self._deputy_id
         msg.ncmds = len(self._commands)
         msg.sheriff_id = sheriff_id
@@ -435,8 +435,8 @@ class Deputy(object):
             if cmd._scheduled_for_removal:
                 msg.ncmds -= 1
                 continue
-            cmd_msg = cmd_desired_t()
-            cmd_msg.cmd = cmd_t()
+            cmd_msg = ProcmanCmdDesired()
+            cmd_msg.cmd = ProcmanCmd()
             cmd_msg.cmd.exec_str = cmd._exec_str
             cmd_msg.cmd.command_id = cmd._command_id
             cmd_msg.cmd.group = cmd._group
@@ -557,8 +557,8 @@ class Sheriff(object):
                 ":" + str(_now_utime())
 
         # publish a discovery message to query for existing deputies
-        discover_msg = discovery_t()
-        discover_msg.utime = _now_utime()
+        discover_msg = ProcmanDiscovery()
+        discover_msg.timestamp = _now_utime()
         discover_msg.transmitter_id = self._id
         discover_msg.nonce = 0
         self._lcm.publish("PM_DISCOVER", discover_msg.encode())
@@ -651,7 +651,7 @@ class Sheriff(object):
     def _on_pmd_info(self, _, data):
         # LCM callback. self._lock is not acquired
         try:
-            info_msg = deputy_info_t.decode(data)
+            info_msg = ProcmanDeputyInfo.decode(data)
         except ValueError:
             _warn("invalid deputy_info_t message")
             return
@@ -679,7 +679,7 @@ class Sheriff(object):
     def _on_pmd_orders(self, _, data):
         # LCM callback. self._lock is not acquired
         try:
-            orders_msg = orders_t.decode(data)
+            orders_msg = ProcmanOrders.decode(data)
         except ValueError:
             _warn("Invalid orders_t message")
             return

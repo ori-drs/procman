@@ -1,21 +1,10 @@
-import os
-import sys
 import time
 import threading
 
-import lcm
-from procman_lcm.cmd_t import cmd_t
-from procman_lcm.deputy_info_t import deputy_info_t
-from procman_lcm.orders_t import orders_t
-from procman_lcm.cmd_desired_t import cmd_desired_t
-from procman_lcm.cmd_status_t import cmd_status_t
-from procman_lcm.discovery_t import discovery_t
-import procman.sheriff_config as sheriff_config
 from procman.sheriff import SheriffListener, RUNNING, STOPPED_OK, STOPPED_ERROR
 
 from procman.sheriff_config import ScriptNode, \
                                    WaitStatusActionNode, \
-                                   WaitMsActionNode, \
                                    StartStopRestartActionNode, \
                                    RunScriptActionNode, \
                                    escape_str
