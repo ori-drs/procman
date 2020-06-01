@@ -1,7 +1,7 @@
 import gobject
 import gtk
 
-import procman.sheriff as sheriff
+import procman_ros.sheriff as sheriff
 
 COL_CMDS_TV_OBJ, \
 COL_CMDS_TV_EXEC, \
@@ -126,7 +126,7 @@ class SheriffCommandModel(gtk.TreeStore):
 
     def _update_group_row(self, group_rr, cmd_deps):
         model_iter = self.get_iter(group_rr.get_path())
-        # row represents a procman group
+        # row represents a procman_ros group
         children = self.get_group_row_child_commands_recursive(model_iter)
         if not children:
             return

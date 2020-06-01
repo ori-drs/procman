@@ -6,13 +6,14 @@ import sys
 import time
 
 from lcm import LCM
-from procman.sheriff_script import ScriptManager, ScriptListener
-from procman.sheriff import Sheriff
-import procman.sheriff as sheriff
+from procman_ros.sheriff_script import ScriptManager, ScriptListener
+from procman_ros.sheriff import Sheriff
+import procman_ros.sheriff as sheriff
 
 try:
-    from procman.build_prefix import BUILD_PREFIX
+    from procman_ros.build_prefix import BUILD_PREFIX
 except ImportError:
+    print("did not find build prefix")
     BUILD_PREFIX = None
 
 def find_procman_deputy_cmd():
@@ -88,7 +89,7 @@ class SheriffHeadless(ScriptListener):
             procman_deputy_cmd = find_procman_deputy_cmd()
             args = [ procman_deputy_cmd, "-i", "localhost" ]
             if not procman_deputy_cmd:
-                sys.stderr.write("Can't find procman-deputy.")
+                sys.stderr.write("Can't find procman_ros-deputy.")
                 sys.exit(1)
             self.spawned_deputy = subprocess.Popen(args)
         else:
@@ -144,7 +145,7 @@ Options:
 
   -o, --observer      Runs in observer mode on startup.  This prevents the
                       sheriff from sending any commands, and is useful for
-                      monitoring existing procman sheriff and/or deputy
+                      monitoring existing procman_ros sheriff and/or deputy
                       instances. Using this option is currently useless.
 
   --on-script-complete <exit|observe>

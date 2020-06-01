@@ -1,9 +1,9 @@
 import gtk
 import pango
 
-import procman.sheriff as sheriff
-import procman.sheriff_gtk.command_model as cm
-import procman.sheriff_gtk.sheriff_dialogs as sd
+import procman_ros.sheriff as sheriff
+import procman_ros.sheriff_gtk.command_model as cm
+import procman_ros.sheriff_gtk.sheriff_dialogs as sd
 
 class SheriffCommandTreeView(gtk.TreeView):
     def __init__(self, _sheriff, _script_manager, cmds_ts):

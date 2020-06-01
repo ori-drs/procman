@@ -8,6 +8,7 @@ import sys
 import time
 import signal
 import threading
+import rospy
 
 import lcm
 from procman_ros.msg import ProcmanCmd
@@ -17,7 +18,7 @@ from procman_ros.msg import ProcmanCmdDesired
 from procman_ros.msg import ProcmanCmdStatus
 from procman_ros.msg import ProcmanDiscovery
 
-import procman.sheriff_config as sheriff_config
+import procman_ros.sheriff_config as sheriff_config
 
 def _dbg(text):
     return
@@ -255,14 +256,14 @@ class Command(object):
         sheriff.
 
         Returns one of:
-        - procman.sheriff.TRYING_TO_START
-        - procman.sheriff.RUNNING
-        - procman.sheriff.TRYING_TO_STOP
-        - procman.sheriff.REMOVING
-        - procman.sheriff.STOPPED_OK
-        - procman.sheriff.STOPPED_ERROR
-        - procman.sheriff.UNKNOWN
-        - procman.sheriff.RESTARTING
+        - procman_ros.sheriff.TRYING_TO_START
+        - procman_ros.sheriff.RUNNING
+        - procman_ros.sheriff.TRYING_TO_STOP
+        - procman_ros.sheriff.REMOVING
+        - procman_ros.sheriff.STOPPED_OK
+        - procman_ros.sheriff.STOPPED_ERROR
+        - procman_ros.sheriff.UNKNOWN
+        - procman_ros.sheriff.RESTARTING
         """
         with self._lock:
             return self._status()
@@ -519,9 +520,9 @@ class Sheriff(object):
 
     example usage:
     \code
-    import procman
+    import procman_ros
 
-    sheriff = procman.Sheriff(lcm_obj)
+    sheriff = procman_ros.Sheriff(lcm_obj)
 
     # add commands or load a config file
 
@@ -531,11 +532,11 @@ class Sheriff(object):
 
     ## %SheriffListener ##
     To be notified of when a command is added, started, stopped, etc., create a
-    subclass of procman.SheriffListener and attach it to the sheriff via
+    subclass of procman_ros.SheriffListener and attach it to the sheriff via
     add_listener().
     """
 
-    def __init__ (self, lcm_obj = None):
+    def __init__ (self):
         """Initialize a new Sheriff object.
 
         \param lcm_obj the LCM object to use for communication.  If None, then
@@ -543,14 +544,11 @@ class Sheriff(object):
         endlessly calls LCM.handle(). If this is passed in by the user, then
         the user is expected to call LCM.handle().
         """
-        self._lcm = lcm_obj
-        self._lcm_thread = None
-        self._lcm_thread_obj = None
-        if self._lcm is None:
-            self._lcm = lcm.LCM()
-            self._lcm_thread_obj = threading.Thread(target = self._lcm_thread)
-        self._lcm.subscribe("PM_INFO", self._on_pmd_info)
-        self._lcm.subscribe("PM_ORDERS", self._on_pmd_orders)
+        rospy.init_node("procman_ros_sheriff")
+        self.info_sub = rospy.Subscriber("pm_info", ProcmanDeputyInfo, self._on_pmd_info)
+        self.orders_sub = rospy.Subscriber("pm_orders", ProcmanOrders, self._on_pmd_orders)
+        self.discover_pub = rospy.Publisher("pm_discover", ProcmanDiscovery, queue_size=10)
+
         self._deputies = {}
         self._is_observer = False
         self._id = platform.node() + ":" + str(os.getpid()) + \
@@ -561,7 +559,7 @@ class Sheriff(object):
         discover_msg.timestamp = _now_utime()
         discover_msg.transmitter_id = self._id
         discover_msg.nonce = 0
-        self._lcm.publish("PM_DISCOVER", discover_msg.encode())
+        self.discover_pub.publish(discover_msg)
 
         # Create a worker thread for periodically publishing orders
         self._worker_thread_obj = threading.Thread(target = self._worker_thread)
@@ -703,9 +701,6 @@ class Sheriff(object):
         # wait for worker thread to exit.
         self._worker_thread_obj.join()
 
-        # wait for LCM thread to exit.
-        if self._lcm_thread_obj:
-            self._lcm_thread_obj.join()
 
     def _send_orders(self):
         """Transmit orders to all deputies.  Call this method for the sheriff

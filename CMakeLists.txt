@@ -106,6 +106,15 @@ add_executable(event_loop_test src/procman_ros/event_loop_test.cpp
 #   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 # )
 
+# Needed in order to generate the correct py_install_dir
+find_package(PythonInterp REQUIRED)
+
+execute_process(COMMAND
+    ${PYTHON_EXECUTABLE} -c "import sys; sys.stdout.write(sys.version[:3])"
+    OUTPUT_VARIABLE pyversion)
+
+set(py_install_dir lib/python${pyversion}/dist-packages)
+
 # Install the python sheriff script to bin so that it does not have to be called
 # with rosrun
 #set(procman_ros_sheriff ${CMAKE_INSTALL_PREFIX}/procman-ros-sheriff)
@@ -119,11 +128,17 @@ add_executable(event_loop_test src/procman_ros/event_loop_test.cpp
 #           "procman_ros.sheriff_gtk.sheriff_gtk.main()\n")
 #catkin_install_python(PROGRAMS ${procman_ros_sheriff} DESTINATION bin)
 
-# This is used to find some files required to construct the GUI
-#set(build_prefix_py ${CMAKE_CURRENT_BINARY_DIR}/src/procman/build_prefix.py)
-#file(WRITE ${build_prefix_py}
-#     "BUILD_PREFIX='${CMAKE_INSTALL_PREFIX}'\n")
-#install(FILES ${build_prefix_py} DESTINATION ${py_install_dir}/procman)
+# This tiny generated file is created so that we can find the glade file required to construct the GUI
+set(build_prefix_py ${CMAKE_CURRENT_BINARY_DIR}/src/procman_ros/build_prefix.py)
+file(WRITE ${build_prefix_py}
+     "BUILD_PREFIX='${CMAKE_INSTALL_PREFIX}'\n")
+install(FILES ${build_prefix_py} DESTINATION ${py_install_dir}/procman_ros)
+
+# Have to install the procman_ros_sheriff script in order for it to be seen when in the install/setup.bash sourced space
+# Must use catkin_install_python - using bare install means that the file is not executable.
+catkin_install_python(PROGRAMS scripts/procman_ros_sheriff DESTINATION ${CMAKE_INSTALL_PREFIX}/share/procman_ros)
+
+install(FILES python/procman-sheriff.glade DESTINATION ~/.local/share/procman_ros)
 
 ## Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}/

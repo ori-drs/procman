@@ -5,9 +5,9 @@ import signal
 import gobject
 import gtk
 
-from procman.sheriff_config import Parser, ScriptNode
-from procman.sheriff_script import SheriffScript, ScriptManager
-from procman.sheriff import DEFAULT_STOP_SIGNAL, DEFAULT_STOP_TIME_ALLOWED
+from procman_ros.sheriff_config import Parser, ScriptNode
+from procman_ros.sheriff_script import SheriffScript, ScriptManager
+from procman_ros.sheriff import DEFAULT_STOP_SIGNAL, DEFAULT_STOP_TIME_ALLOWED
 
 class AddModifyCommandDialog (gtk.Dialog):
     def __init__ (self, parent, deputies, groups,

@@ -1,9 +1,9 @@
 import time
 import threading
 
-from procman.sheriff import SheriffListener, RUNNING, STOPPED_OK, STOPPED_ERROR
+from procman_ros.sheriff import SheriffListener, RUNNING, STOPPED_OK, STOPPED_ERROR
 
-from procman.sheriff_config import ScriptNode, \
+from procman_ros.sheriff_config import ScriptNode, \
                                    WaitStatusActionNode, \
                                    StartStopRestartActionNode, \
                                    RunScriptActionNode, \
@@ -206,21 +206,21 @@ class ScriptListener(object):
         """Called when a script
         is added.
 
-        \param script_object a [SheriffScript](\ref procman.sheriff_script.SheriffScript) object.
+        \param script_object a [SheriffScript](\ref procman_ros.sheriff_script.SheriffScript) object.
         """
         return
 
     def script_removed(self, script_object):
         """Called when a script is removed.
 
-        \param script_object a [SheriffScript](\ref procman.sheriff_script.SheriffScript) object.
+        \param script_object a [SheriffScript](\ref procman_ros.sheriff_script.SheriffScript) object.
         """
         return
 
     def script_started(self, script_object):
         """Called when a script begins executing.
 
-        \param script_object a [SheriffScript](\ref procman.sheriff_script.SheriffScript) object.
+        \param script_object a [SheriffScript](\ref procman_ros.sheriff_script.SheriffScript) object.
         """
         return
 
@@ -228,12 +228,12 @@ class ScriptListener(object):
         """Called when a single action in a script begins to run.  (e.g., start
         a command)
 
-        \param script_object a [SheriffScript](\ref procman.sheriff_script.SheriffScript) object
+        \param script_object a [SheriffScript](\ref procman_ros.sheriff_script.SheriffScript) object
         \param action one of:
-          - [StartStopRestartAction](\ref procman.sheriff_script.StartStopRestartAction),
-          - [WaitMsAction](\ref procman.sheriff_script.WaitMsAction),
-          - [WaitStatusAction](\ref procman.sheriff_script.WaitStatusAction),
-          - [RunScriptAction](\ref procman.sheriff_script.RunScriptAction)
+          - [StartStopRestartAction](\ref procman_ros.sheriff_script.StartStopRestartAction),
+          - [WaitMsAction](\ref procman_ros.sheriff_script.WaitMsAction),
+          - [WaitStatusAction](\ref procman_ros.sheriff_script.WaitStatusAction),
+          - [RunScriptAction](\ref procman_ros.sheriff_script.RunScriptAction)
         """
         return
 
