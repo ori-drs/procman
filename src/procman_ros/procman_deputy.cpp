@@ -18,6 +18,8 @@
 #include <map>
 #include <set>
 
+#include <ros/ros.h>
+
 #include "procman_deputy.hpp"
 using procman_ros::ProcmanCmdDesired;
 using procman_ros::ProcmanCmdDesiredConstPtr;
@@ -872,6 +874,8 @@ static void usage() {
 using namespace procman;
 
 int main (int argc, char **argv) {
+  ros::init(argc, argv, "procman_ros_deputy");
+  ros::NodeHandle nh;
   const char *optstring = "hvfl:i:u:";
   int c;
   struct option long_opts[] = {

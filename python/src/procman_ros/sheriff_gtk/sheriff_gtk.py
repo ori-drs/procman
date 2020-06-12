@@ -8,6 +8,7 @@ import subprocess
 import signal
 import pickle
 import rospy
+import rospkg
 
 import glib
 import gobject
@@ -17,7 +18,7 @@ from lcm import LCM
 
 import procman_ros.sheriff as sheriff
 from procman_ros.sheriff import Sheriff, SheriffListener
-from procman_ros.sheriff_cli import SheriffHeadless, find_procman_deputy_cmd
+from procman_ros.sheriff_cli import SheriffHeadless
 from procman_ros.sheriff_script import ScriptManager
 import procman_ros.sheriff_config as sheriff_config
 
@@ -27,31 +28,13 @@ import procman_ros.sheriff_gtk.sheriff_dialogs as sd
 import procman_ros.sheriff_gtk.command_console as cc
 import procman_ros.sheriff_gtk.deputies_treeview as ht
 
-try:
-    from procman_ros.build_prefix import BUILD_PREFIX
-except ImportError:
-    BUILD_PREFIX = None
-
 def _dbg(text):
 #    return
     sys.stderr.write("%s\n" % text)
 
 def find_procman_glade():
-    search_path = []
-    if BUILD_PREFIX:
-        search_path.append(os.path.join(BUILD_PREFIX, "share", "procman_ros"))
-    search_path.append("/usr/share/procman_ros")
-    search_path.append("/usr/local/share/procman_ros")
-    search_path.append(os.path.expanduser("~/.local/share/procman_ros"))
-    for spath in search_path:
-        fname = os.path.join(spath, "procman-sheriff.glade")
-        if os.path.isfile(fname):
-            return fname
-    rospy.logerr("ERROR!  Unable to find procman-sheriff.glade")
-    rospy.logerr("Locations checked:")
-    for spath in search_path:
-        rospy.logerr("    %s" % spath)
-    sys.exit(1)
+    rospack = rospkg.RosPack()
+    return os.path.join(rospack.get_path("procman_ros"), "python/procman-ros-sheriff.glade")
 
 def split_script_name(name):
     name = name.strip("/")
@@ -103,18 +86,11 @@ class SheriffGtk(SheriffListener):
         self.save_dlg = None
         self.load_save_dir = None
         self.cfg_to_load = None
-        if BUILD_PREFIX and os.path.exists("%s/data/procman_ros" % BUILD_PREFIX):
-            self.load_save_dir = "%s/data/procman_ros" % BUILD_PREFIX
 
         # options menu
         self.is_observer_cmi = self.builder.get_object("is_observer_cmi")
         self.spawn_deputy_mi = self.builder.get_object("spawn_deputy_mi")
         self.terminate_spawned_deputy_mi = self.builder.get_object("terminate_spawned_deputy_mi")
-
-        self.procman_deputy_cmd = find_procman_deputy_cmd()
-        if not self.procman_deputy_cmd:
-            sys.stderr.write("Can't find procman_ros-deputy.  Spawn Deputy disabled")
-            self.spawn_deputy_mi.set_sensitive(False)
 
         # commands menu
         self.start_cmd_mi = self.builder.get_object("start_cmd_mi")
@@ -568,7 +544,7 @@ class SheriffGtk(SheriffListener):
     def on_spawn_deputy_mi_activate(self, *args):
         print("Spawn deputy!")
         self._terminate_spawned_deputy()
-        args = [ self.procman_deputy_cmd, "-i", "localhost" ]
+        args = ["rosrun", "procman_ros", "procman_ros_deputy", "-i", "localhost" ]
         self.spawned_deputy = subprocess.Popen(args)
         # TODO disable
         self.spawn_deputy_mi.set_sensitive(False)

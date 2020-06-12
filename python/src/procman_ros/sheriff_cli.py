@@ -10,23 +10,6 @@ from procman_ros.sheriff_script import ScriptManager, ScriptListener
 from procman_ros.sheriff import Sheriff
 import procman_ros.sheriff as sheriff
 
-try:
-    from procman_ros.build_prefix import BUILD_PREFIX
-except ImportError:
-    print("did not find build prefix")
-    BUILD_PREFIX = None
-
-def find_procman_deputy_cmd():
-    search_path = []
-    if BUILD_PREFIX is not None:
-        search_path.append("%s/bin" % BUILD_PREFIX)
-    search_path.extend(os.getenv("PATH").split(":"))
-    for dirname in search_path:
-        fname = "%s/procman-deputy" % dirname
-        if os.path.exists(fname) and os.path.isfile(fname):
-            return fname
-    return None
-
 class SheriffHeadless(ScriptListener):
     def __init__(self, lcm_obj, config, spawn_deputy, script_name, script_done_action):
         self.sheriff = Sheriff(lcm_obj)
@@ -86,11 +69,7 @@ class SheriffHeadless(ScriptListener):
 
         # start a local deputy?
         if self.spawn_deputy:
-            procman_deputy_cmd = find_procman_deputy_cmd()
-            args = [ procman_deputy_cmd, "-i", "localhost" ]
-            if not procman_deputy_cmd:
-                sys.stderr.write("Can't find procman_ros-deputy.")
-                sys.exit(1)
+            args = ["rosrun", "procman_ros", "procman_ros_deputy", "-i", "localhost" ]
             self.spawned_deputy = subprocess.Popen(args)
         else:
             self.spawned_deputy = None
