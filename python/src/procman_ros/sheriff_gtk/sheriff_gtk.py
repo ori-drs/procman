@@ -31,7 +31,7 @@ import procman_ros.sheriff_gtk.deputies_treeview as ht
 
 def _dbg(text):
     #    return
-    sys.stderr.write("%s\n" % text)
+    sys.stderr.write("{}\n".format(text))
 
 
 def find_procman_glade():
@@ -343,7 +343,7 @@ class SheriffGtk(SheriffListener):
             0,
             gtk.MESSAGE_ERROR,
             gtk.BUTTONS_OK,
-            "Spawned deputy exited prematurely: %s" % msg,
+            "Spawned deputy exited prematurely: {}".format(msg),
         )
         dialog.run()
         dialog.destroy()
@@ -369,13 +369,13 @@ class SheriffGtk(SheriffListener):
         if self.statusbar_context_script_msg is not None:
             self.statusbar.pop(cid)
             self.statusbar_context_script_msg = self.statusbar.push(
-                cid, "Script %s: start" % script.name
+                cid, "Script {}: start".format(script.name)
             )
 
     def _gtk_on_script_action_executing(self, script, action):
         cid = self.statusbar_context_script
         self.statusbar.pop(cid)
-        msg = "Action: %s" % str(action)
+        msg = "Action: {}".format(str(action))
         self.statusbar_context_script_msg = self.statusbar.push(cid, msg)
 
     def _gtk_on_script_finished(self, script):
@@ -383,7 +383,7 @@ class SheriffGtk(SheriffListener):
         cid = self.statusbar_context_script
         self.statusbar.pop(cid)
         self.statusbar_context_script_msg = self.statusbar.push(
-            cid, "Script %s: finished" % script.name
+            cid, "Script {}: finished".format(script.name)
         )
 
         def _remove_msg_func(msg_id):
@@ -758,7 +758,7 @@ def main():
         if args.script:
             script = gui.script_manager.get_script(args.script)
             if not script:
-                print("No such script: %s" % args.script)
+                print("No such script: {}".format(args.script))
                 gui.cleanup(False)
                 sys.exit(1)
             errors = gui.script_manager.check_script_for_errors(script)

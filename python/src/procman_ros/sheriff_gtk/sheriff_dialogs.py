@@ -231,7 +231,7 @@ def do_add_command_dialog(sheriff, cmds_ts, window):
     existing_ids = {cmd.command_id for cmd in sheriff.get_all_commands()}
     initial_cmd_id = ""
     for i in range(len(existing_ids) + 1):
-        initial_cmd_id = "command_%d" % i
+        initial_cmd_id = "command_{}".format(i)
         if initial_cmd_id not in existing_ids:
             break
     assert initial_cmd_id and initial_cmd_id not in existing_ids
@@ -342,7 +342,7 @@ def _do_err_dialog(window, msg):
         gtk.MESSAGE_ERROR,
         gtk.BUTTONS_CLOSE,
     )
-    msgdlg.set_markup('<span font_family="monospace">%s</span>' % msg)
+    msgdlg.set_markup('<span font_family="monospace">{}</span>'.format(msg))
     msgdlg.run()
     msgdlg.destroy()
 
@@ -386,7 +386,7 @@ def do_add_script_dialog(script_manager, window):
             dlg.script_tv.grab_focus()
             continue
         if script_manager.get_script(script.name) is not None:
-            _do_err_dialog(window, "A script named %s already exists!" % script.name)
+            _do_err_dialog(window, "A script named {} already exists!".format(script.name))
             continue
         script_manager.add_script(script)
         break
@@ -409,7 +409,7 @@ def do_edit_script_dialog(script_manager, window, script):
         if new_script.name != script.name:
             if script_manager.get_script(new_script.name) is not None:
                 _do_err_dialog(
-                    window, "A script named %s already exists!" % script.name
+                    window, "A script named {} already exists!".format(script.name)
                 )
                 dlg.script_tv.grab_focus()
                 continue

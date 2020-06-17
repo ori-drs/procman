@@ -142,8 +142,8 @@ class SheriffCommandTreeView(gtk.TreeView):
         for col in self.get_columns():
             col_id = col.get_data("col-id")
 
-            visible_key = "command_treeview:visible:%s" % col_id
-            width_key = "command_treeview:width:%s" % col_id
+            visible_key = "command_treeview:visible:{}".format(col_id)
+            width_key = "command_treeview:width:{}".format(col_id)
             save_map[visible_key] = col.get_visible()
             save_map[width_key] = col.get_width()
 
@@ -154,8 +154,8 @@ class SheriffCommandTreeView(gtk.TreeView):
         for col in self.get_columns():
             col_id = col.get_data("col-id")
 
-            visible_key = "command_treeview:visible:%s" % col_id
-            width_key = "command_treeview:width:%s" % col_id
+            visible_key = "command_treeview:visible:{}".format(col_id)
+            width_key = "command_treeview:width:{}".format(col_id)
             should_be_visible = save_map.get(visible_key, True)
             col.set_visible(should_be_visible)
             if int(col_id) == cm.COL_CMDS_TV_COMMAND_ID:

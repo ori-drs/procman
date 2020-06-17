@@ -91,7 +91,7 @@ class SheriffCommandModel(gtk.TreeStore):
         path = model_rr.get_path()
         model_iter = self.get_iter(path)
         cmd = self.iter_to_command(model_iter)
-        cpu_str = "%.2f" % (cmd.cpu_usage * 100)
+        cpu_str = "{:.2f}".format(cmd.cpu_usage * 100)
         mem_usage = int(cmd.mem_rss_bytes / 1024)
 
         self.set(
@@ -167,7 +167,7 @@ class SheriffCommandModel(gtk.TreeStore):
         # aggregate CPU and memory usage
         cpu_total = sum([cmd.cpu_usage for cmd in children])
         mem_total = sum([cmd.mem_rss_bytes / 1024 for cmd in children])
-        cpu_str = "%.2f" % (cpu_total * 100)
+        cpu_str = "{:.2f}".format(cpu_total * 100)
 
         # display group name in command column?
         if self.populate_exec_with_group_name:

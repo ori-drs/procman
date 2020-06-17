@@ -25,11 +25,11 @@ def _dbg(text):
     return
 
 
-#    sys.stderr.write("%s\n" % text)
+#    sys.stderr.write("{}\n".format(text))
 
 
 def _warn(text):
-    sys.stderr.write("[WARNING] %s\n" % text)
+    sys.stderr.write("[WARNING] {}\n".format(text))
 
 
 def _now_utime():
@@ -698,7 +698,7 @@ class Sheriff:
             # ignore old messages
             return
 
-        #        _dbg("received pmd info from [%s]" % info_msg.deputy_id)
+        #        _dbg("received pmd info from [{}]".format(info_msg.deputy_id))
 
         with self._lock:
             deputy = self._get_or_make_deputy(info_msg.deputy_id)
@@ -706,7 +706,7 @@ class Sheriff:
             # Check if this is the first time we've heard from the deputy and
             # we already have a desired state for the deputy.
             if not deputy._last_update_utime and deputy._commands:
-                _dbg("First update from [%s]" % info_msg.deputy_id)
+                _dbg("First update from [{}]".format(info_msg.deputy_id))
 
             status_changes = deputy._update_from_deputy_info(info_msg)
 
@@ -779,7 +779,7 @@ class Sheriff:
         if not command_id:
             raise ValueError("Invalid command id")
         if self._get_command(command_id):
-            raise ValueError("Duplicate command id %s" % command_id)
+            raise ValueError("Duplicate command id {}".format(command_id))
         if not deputy_id:
             raise ValueError("Invalid deputy")
 
@@ -836,7 +836,7 @@ class Sheriff:
             )
 
     def _start_command(self, cmd):
-        _dbg("start_command [%s]" % cmd._command_id)
+        _dbg("start_command [{}]".format(cmd._command_id))
         # self._lock should already be acquired
         if self._is_observer:
             raise ValueError("Can't modify commands in Observer mode")

@@ -26,7 +26,7 @@ class DeputyModel(gtk.ListStore):
         def _deputy_last_update_str(dep):
             if dep.last_update_utime:
                 now_utime = time.time() * 1000000
-                return "%.1f seconds ago" % ((now_utime - dep.last_update_utime) * 1e-6)
+                return "{:.1f} seconds ago".format((now_utime - dep.last_update_utime) * 1e-6)
             else:
                 return "<never>"
 
@@ -38,7 +38,7 @@ class DeputyModel(gtk.ListStore):
                     DeputyModel.COL_LAST_UPDATE,
                     _deputy_last_update_str(deputy),
                     DeputyModel.COL_LOAD,
-                    "%f" % deputy.cpu_load,
+                    "{}".format(deputy.cpu_load),
                 )
                 to_update.remove(deputy)
             else:
@@ -55,7 +55,7 @@ class DeputyModel(gtk.ListStore):
                 deputy,
                 deputy.deputy_id,
                 _deputy_last_update_str(deputy),
-                "%f" % deputy.cpu_load,
+                "{}".format(deputy.cpu_load),
             )
             self.append(new_row)
 

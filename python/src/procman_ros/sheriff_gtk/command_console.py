@@ -143,14 +143,12 @@ class SheriffCommandConsole(gtk.ScrolledWindow, SheriffListener):
                 self._add_text_to_buffer(
                     extradata.tb,
                     now_str()
-                    + "\nSHERIFF RATE LIMIT: Ignored %d bytes of output\n"
-                    % (extradata.printf_drop_count),
+                    + "\nSHERIFF RATE LIMIT: Ignored {} bytes of output\n".format(extradata.printf_drop_count),
                 )
                 self._add_text_to_buffer(
                     self.sheriff_tb,
                     now_str()
-                    + "Ignored %d bytes of output from [%s] [%s]\n"
-                    % (extradata.printf_drop_count, deputy.deputy_id, cmd.command_id),
+                    + "Ignored {} bytes of output from [{}] [{}]\n".format(extradata.printf_drop_count, deputy.deputy_id, cmd.command_id),
                 )
 
             extradata.printf_keep_count.pop(0)

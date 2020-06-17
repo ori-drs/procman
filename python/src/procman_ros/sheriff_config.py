@@ -27,12 +27,12 @@ class ParseError(ValueError):
         ntabs = self.text.count("\t")
         tokenstr = ""
         if self.token is not None:
-            tokenstr = "token %s" % self.token
-        s = """%s
+            tokenstr = "token {}".format(self.token)
+        s = """{}
 
-line %d col %s %s
-%s
-""" % (
+line {} col {} {}
+{}
+""".format(
             self.msg,
             self.lineno,
             self.offset,
@@ -177,7 +177,7 @@ class CommandNode:
         s = "    " * indent
         lines = []
         command_id = self.attributes["command_id"]
-        lines.append(s + 'cmd "%s" {' % escape_str(command_id))
+        lines.append(s + 'cmd "{}" {'.format(escape_str(command_id)))
         pairs = list(self.attributes.items())
         pairs.sort()
         for key, val in pairs:
@@ -239,7 +239,7 @@ class GroupNode:
             val = val + "\n".join(
                 [cmd.to_config_string(indent + 1) for cmd in self.commands]
             )
-            val = val + "\n%s}\n" % s
+            val = val + "\n{}}\n".format(s)
         return val
 
     def __str__(self):
@@ -279,7 +279,7 @@ class WaitMsActionNode:
         self.action_type = "wait_ms"
 
     def __str__(self):
-        return "wait ms %d;" % self.delay_ms
+        return "wait ms {};".format(self.delay_ms)
 
 
 class WaitStatusActionNode:
@@ -291,7 +291,7 @@ class WaitStatusActionNode:
         assert wait_status in ["running", "stopped"]
 
     def __str__(self):
-        return 'wait %s "%s" status "%s";' % (
+        return 'wait {} "{}" status "{}";'.format(
             self.ident_type,
             escape_str(self.ident),
             self.wait_status,
@@ -304,7 +304,7 @@ class RunScriptActionNode:
         self.action_type = "run_script"
 
     def __str__(self):
-        return 'run_script "%s";' % escape_str(self.script_name)
+        return 'run_script "{}";'.format(escape_str(self.script_name))
 
 
 class ScriptNode:
@@ -318,7 +318,7 @@ class ScriptNode:
         self.actions.append(action)
 
     def __str__(self):
-        val = 'script "%s" {' % escape_str(self.name)
+        val = 'script "{}" {'.format(escape_str(self.name))
         for action in self.actions:
             val = val + "\n    " + str(action)
         val = val + "\n}\n"
@@ -410,13 +410,13 @@ class Parser:
 
     def _expect_identifier(self, identifier, err_msg=None):
         if err_msg is None:
-            err_msg = "Expected %s" % identifier
+            err_msg = "Expected {}".format(identifier)
         self._eat_token_or_fail(TokIdentifier, err_msg)
         if self._cur_tok.val != identifier:
             self._fail(err_msg)
 
     def _parse_identifier_one_of(self, valid_identifiers):
-        err_msg = "Expected one of %s" % str(valid_identifiers)
+        err_msg = "Expected one of {}".format(str(valid_identifiers))
         self._eat_token_or_fail(TokIdentifier, err_msg)
         result = self._cur_tok.val
         if result not in valid_identifiers:
@@ -424,7 +424,7 @@ class Parser:
         return result
 
     def _parse_string_one_of(self, valid_strings):
-        err_msg = "Expected one of %s" % str(valid_strings)
+        err_msg = "Expected one of {}".format(str(valid_strings))
         self._eat_token_or_fail(TokString, err_msg)
         result = self._cur_tok.val
         if result not in valid_strings:
@@ -450,7 +450,7 @@ class Parser:
         }
 
         if attrib_name not in attribs:
-            self._fail("Unrecognized attribute %s" % attrib_name)
+            self._fail("Unrecognized attribute {}".fomrat(attrib_name))
 
         self._eat_token_or_fail(TokAssign, "Expected '='")
         if attribs[attrib_name] == TokString:
@@ -545,7 +545,7 @@ class Parser:
             elif action_type == "run_script":
                 actions.append(self._parse_run_script())
             else:
-                self._fail("Unexpected token %s" % action_type)
+                self._fail("Unexpected token {}".format(action_type))
         self._eat_token_or_fail(TokCloseStruct, "Unexpected token")
         return actions
 

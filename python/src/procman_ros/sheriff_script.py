@@ -16,7 +16,7 @@ def _dbg(text):
     return
 
 
-#    sys.stderr.write("%s\n" % text)
+#    sys.stderr.write("{}\n".format(text))
 
 
 class StartStopRestartAction:
@@ -71,7 +71,7 @@ class WaitMsAction:
         return WaitMsAction(self.delay_ms)
 
     def __str__(self):
-        return "wait ms %d;" % self.delay_ms
+        return "wait ms {};".format(self.delay_ms)
 
 
 class WaitStatusAction:
@@ -91,7 +91,7 @@ class WaitStatusAction:
         return WaitStatusActionNode(self.ident_type, self.ident, self.wait_status)
 
     def __str__(self):
-        return 'wait %s "%s" status "%s";' % (
+        return 'wait {} "{}" status "{}";'.format(
             self.ident_type,
             escape_str(self.ident),
             self.wait_status,
@@ -113,7 +113,7 @@ class RunScriptAction:
         return RunScriptActionNode(self.script_name)
 
     def __str__(self):
-        return 'run_script "%s";' % escape_str(self.script_name)
+        return 'run_script "{}";'.format(escape_str(self.script_name))
 
 
 class SheriffScript:
@@ -137,7 +137,7 @@ class SheriffScript:
         return node
 
     def __str__(self):
-        val = 'script "%s" {' % escape_str(self.name)
+        val = 'script "{}" {'.format(escape_str(self.name))
         for action in self.actions:
             val = val + "\n    " + str(action)
         val = val + "\n}\n"
@@ -163,7 +163,7 @@ class SheriffScript:
             elif action_node.action_type == "run_script":
                 action = RunScriptAction(action_node.script_name)
             else:
-                raise ValueError("unrecognized action %s" % action_node.action_type)
+                raise ValueError("unrecognized action {}".format(action_node.action_type))
             script.add_action(action)
         return script
 
@@ -375,7 +375,7 @@ class ScriptManager:
     def _add_script(self, new_script):
         for script in self._scripts:
             if script.name == new_script.name:
-                raise ValueError("Script [%s] already exists", script.name)
+                raise ValueError("Script [{}] already exists".format(script.name))
         self._scripts.append(new_script)
         self.__script_added(new_script)
 
@@ -397,7 +397,7 @@ class ScriptManager:
             self._scripts.remove(script)
             self.__script_removed(script)
         else:
-            raise ValueError("Unknown script [%s]", script.name)
+            raise ValueError("Unknown script []".format(script.name))
 
     def remove_script(self, script):
         """Remove a script.
@@ -415,7 +415,7 @@ class ScriptManager:
         elif ident_type == "everything":
             return self._sheriff.get_all_commands()
         else:
-            raise ValueError("Invalid ident_type %s" % ident_type)
+            raise ValueError("Invalid ident_type {}".format(ident_type))
 
     def _check_script_for_errors(self, script, path_to_root=None):
         if path_to_root is None:
@@ -424,7 +424,7 @@ class ScriptManager:
         check_subscripts = True
         if path_to_root and script in path_to_root:
             err_msgs.append(
-                "Infinite loop: script %s eventually calls itself" % script.name
+                "Infinite loop: script {} eventually calls itself".format(script.name)
             )
             check_subscripts = False
 
@@ -432,10 +432,10 @@ class ScriptManager:
             if action.action_type in ["start", "stop", "restart", "wait_status"]:
                 if action.ident_type == "cmd":
                     if not self._sheriff.get_command(action.ident):
-                        err_msgs.append("No such command: %s" % action.ident)
+                        err_msgs.append("No such command: {}".format(action.ident))
                 elif action.ident_type == "group":
                     if not self._sheriff.get_commands_by_group(action.ident):
-                        err_msgs.append("No such group: %s" % action.ident)
+                        err_msgs.append("No such group: {}".format(action.ident))
             elif action.action_type == "wait_ms":
                 if action.delay_ms < 0:
                     err_msgs.append("Wait times must be nonnegative")
@@ -444,7 +444,7 @@ class ScriptManager:
                 subscript = self._get_script(action.script_name)
                 if subscript is None:
                     # couldn't find that script.  error out
-                    err_msgs.append('Unknown script "%s"' % action.script_name)
+                    err_msgs.append('Unknown script "{}"'.format(action.script_name))
                 elif check_subscripts:
                     # Recursively check the caleld script for errors.
                     path = path_to_root + [script]
@@ -453,7 +453,7 @@ class ScriptManager:
                     for msg in sub_messages:
                         err_msgs.append("{} - {}".format(parstr, msg))
             else:
-                err_msgs.append("Unrecognized action %s" % action.action_type)
+                err_msgs.append("Unrecognized action {}".format(action.action_type))
         return err_msgs
 
     def check_script_for_errors(self, script, path_to_root=None):
@@ -500,7 +500,7 @@ class ScriptManager:
                     _dbg("cmd [{}] not ready ({})".format(cmd.command_id, cmd_status))
                     return
         else:
-            raise ValueError("Invalid desired status %s" % self._waiting_for_status)
+            raise ValueError("Invalid desired status {}".format(self._waiting_for_status))
 
         # all commands passed the status check.  schedule the next action
         self._waiting_on_commands = []
@@ -534,7 +534,7 @@ class ScriptManager:
             self._finish_script_execution()
             return
 
-        _dbg("_execute_next_script_action: %s" % str(action))
+        _dbg("_execute_next_script_action: {}".format(str(action)))
 
         assert action.action_type != "run_script"
 

@@ -43,7 +43,7 @@ class SheriffHeadless(ScriptListener):
     def _start_script(self):
         if not self.script:
             return False
-        print("Running script %s" % self.script_name)
+        print("Running script {}".format(self.script_name))
         errors = self.script_manager.execute_script(self.script)
         if errors:
             print("Script failed to run.  Errors detected:\n" + "\n".join(errors))
@@ -79,7 +79,7 @@ class SheriffHeadless(ScriptListener):
         if self.script_name:
             self.script = self.script_manager.get_script(self.script_name)
             if not self.script:
-                print("No such script: %s" % self.script_name)
+                print("No such script: {}".format(self.script_name))
                 self._shutdown()
                 sys.exit(1)
             errors = self.script_manager.check_script_for_errors(self.script)
