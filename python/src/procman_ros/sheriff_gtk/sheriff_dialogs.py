@@ -1,4 +1,4 @@
-import cStringIO as StringIO
+import io as StringIO
 import traceback
 import signal
 
@@ -225,7 +225,7 @@ def do_add_command_dialog(sheriff, cmds_ts, window):
                 dlg.get_stop_signal(),
                 dlg.get_stop_time_allowed())
             break
-        except ValueError, xcp:
+        except ValueError as xcp:
             msgdlg = gtk.MessageDialog(window,
                     gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
                     gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, str(xcp))
@@ -311,12 +311,12 @@ def _parse_script(script_manager, window, dlg):
     parser = Parser()
     try:
         cfg_node = parser.parse(StringIO.StringIO(contents))
-    except ValueError, xcp:
+    except ValueError as xcp:
 #        traceback.print_exc()
         _do_err_dialog(window, str(xcp))
         return None
 
-    script_nodes = cfg_node.scripts.values()
+    script_nodes = list(cfg_node.scripts.values())
     if not script_nodes:
         _do_err_dialog(window, "That's not a script...")
         return None
@@ -329,7 +329,7 @@ def _parse_script(script_manager, window, dlg):
 
     errors = script_manager.check_script_for_errors(script)
     if errors:
-        print errors
+        print(errors)
         _do_err_dialog(window, "Script error.\n\n" + "\n   ".join(errors))
         return None
     return script

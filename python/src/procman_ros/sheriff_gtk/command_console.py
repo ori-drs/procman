@@ -86,7 +86,7 @@ class SheriffCommandConsole(gtk.ScrolledWindow, SheriffListener):
         self.output_sub = rospy.Subscriber("pm_output", ProcmanOutput, self.on_procman_output)
 
         self.text_tags = { "normal" : gtk.TextTag("normal") }
-        for tt in self.text_tags.values():
+        for tt in list(self.text_tags.values()):
             self.sheriff_tb.get_tag_table().add(tt)
 
         self.set_output_rate_limit(DEFAULT_MAX_KB_PER_SECOND)

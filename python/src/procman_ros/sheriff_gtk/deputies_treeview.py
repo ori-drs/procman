@@ -11,7 +11,7 @@ class DeputyModel(gtk.ListStore):
     COL_DEPUTY_ID, \
     COL_LAST_UPDATE, \
     COL_LOAD, \
-    NUM_ROWS = range(5)
+    NUM_ROWS = list(range(5))
 
     def __init__(self, _sheriff):
         super(DeputyModel, self).__init__(

@@ -260,8 +260,8 @@ class SheriffGtk(SheriffListener):
             return
         try:
             d = pickle.load(open(self.config_fname, "r"))
-        except Exception, err:
-            print err
+        except Exception as err:
+            print(err)
             return
 
         self.cmds_tv.load_settings(d)
@@ -281,8 +281,8 @@ class SheriffGtk(SheriffListener):
 
         try:
             pickle.dump(d, open(self.config_fname, "w"))
-        except Exception, err:
-            print err
+        except Exception as err:
+            print(err)
 
     def _do_repopulate(self):
         self.cmds_ts.repopulate()
@@ -528,7 +528,7 @@ class SheriffGtk(SheriffListener):
             self.script_manager.save_config(cfg_node)
             try:
                 file (self.config_filename, "w").write(str(cfg_node))
-            except IOError, e:
+            except IOError as e:
                 msgdlg = gtk.MessageDialog (self.window,
                         gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
                         gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, str (e))
@@ -622,20 +622,20 @@ def main():
 
     try:
         cfg = sheriff.load_config_file(file(args.procman_config_file))
-    except Exception, xcp:
-        print "Unable to load config file."
-        print xcp
+    except Exception as xcp:
+        print("Unable to load config file.")
+        print(xcp)
         sys.exit(1)
 
     if args.observer:
         if cfg:
-            print "Loading a config file is not allowed when starting in observer mode."
+            print("Loading a config file is not allowed when starting in observer mode.")
             sys.exit(1)
         if not args.use_gui:
-            print "Refusing to start an observer without a gui -- that would be useless."
+            print("Refusing to start an observer without a gui -- that would be useless.")
             sys.exit(1)
         if args.spawn_deputy:
-            print "Lone ranger mode and observer mode are mutually exclusive."
+            print("Lone ranger mode and observer mode are mutually exclusive.")
             sys.exit(1)
 
     lcm_obj = LCM()
@@ -661,13 +661,13 @@ def main():
         if args.script:
             script = gui.script_manager.get_script(args.script)
             if not script:
-                print "No such script: %s" % args.script
+                print("No such script: %s" % args.script)
                 gui.cleanup(False)
                 sys.exit(1)
             errors = gui.script_manager.check_script_for_errors(script)
             if errors:
-                print "Unable to run script.  Errors were detected:\n\n"
-                print "\n    ".join(errors)
+                print("Unable to run script.  Errors were detected:\n\n")
+                print("\n    ".join(errors))
                 gui.cleanup(False)
                 sys.exit(1)
             gobject.timeout_add(200, lambda *s: gui.run_script(None, script, args.script_done_action))

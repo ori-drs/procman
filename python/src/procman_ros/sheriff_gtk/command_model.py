@@ -12,7 +12,7 @@ COL_CMDS_TV_STATUS_ACTUAL, \
 COL_CMDS_TV_CPU_USAGE, \
 COL_CMDS_TV_MEM_RSS, \
 COL_CMDS_TV_AUTO_RESPAWN, \
-NUM_CMDS_ROWS = range(10)
+NUM_CMDS_ROWS = list(range(10))
 
 class SheriffCommandModel(gtk.TreeStore):
     def __init__(self, _sheriff):
@@ -69,7 +69,7 @@ class SheriffCommandModel(gtk.TreeStore):
             return trr
 
     def get_known_group_names (self):
-        return self.group_row_references.keys()
+        return list(self.group_row_references.keys())
 
     def set_populate_exec_with_group_name(self, val):
         self.populate_exec_with_group_name = val
@@ -211,7 +211,7 @@ class SheriffCommandModel(gtk.TreeStore):
         # reparent rows that are in the wrong group
         for trr, newparent_rr in cmd_rows_to_reparent:
             orig_iter = self.get_iter(trr.get_path ())
-            rowdata = self.get (orig_iter, *range(NUM_CMDS_ROWS))
+            rowdata = self.get (orig_iter, *list(range(NUM_CMDS_ROWS)))
             self.remove (orig_iter)
 
             newparent_iter = None
