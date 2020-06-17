@@ -451,7 +451,7 @@ class Deputy:
 
     def _make_orders_message(self, sheriff_id):
         msg = ProcmanOrders()
-        msg.timestamp = _now_utime()
+        msg.timestamp = rospy.Time.now()
         msg.deputy_id = self._deputy_id
         msg.ncmds = len(self._commands)
         msg.sheriff_id = sheriff_id
@@ -707,21 +707,14 @@ class Sheriff:
             self.__deputy_info_received(deputy)
             self._maybe_emit_status_change_signals(deputy, status_changes)
 
-    def _on_pmd_orders(self, _, data):
-        # LCM callback. self._lock is not acquired
-        try:
-            orders_msg = ProcmanOrders.decode(data)
-        except ValueError:
-            _warn("Invalid orders_t message")
-            return
-
+    def _on_pmd_orders(self, msg):
         with self._lock:
             if self._is_observer:
-                deputy = self._get_or_make_deputy(orders_msg.deputy_id)
-                status_changes = deputy._update_from_deputy_orders(orders_msg)
+                deputy = self._get_or_make_deputy(msg.deputy_id)
+                status_changes = deputy._update_from_deputy_orders(msg)
                 self._maybe_emit_status_change_signals(deputy, status_changes)
-            elif self._id != orders_msg.sheriff_id:
-                self.__sheriff_conflict_detected(orders_msg.sheriff_id)
+            elif self._id != msg.sheriff_id:
+                self.__sheriff_conflict_detected(msg.sheriff_id)
 
     def shutdown(self):
         """Terminates the sheriff and stops the internal worker thread.
