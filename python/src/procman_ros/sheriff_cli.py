@@ -1,4 +1,4 @@
-import getopt
+import argparse
 import os
 import signal
 import subprocess
@@ -113,97 +113,71 @@ class SheriffHeadless(ScriptListener):
         return 0
 
 
-def usage():
-    sys.stdout.write(
-        """usage: %s [options] [<procman_config_file> [<script_name>]]
-
-Process management operating console.
-
-Options:
-  -l, --lone-ranger   Automatically run a deputy within the sheriff process
-                      This deputy terminates with the sheriff, along with
-                      all the commands it hosts.
-
-  -o, --observer      Runs in observer mode on startup.  This prevents the
-                      sheriff from sending any commands, and is useful for
-                      monitoring existing procman_ros sheriff and/or deputy
-                      instances. Using this option is currently useless.
-
-  --on-script-complete <exit|observe>
-                      Only valid if a script is specified.  If set to "exit",
-                      then the sheriff exits when the script is done executing.
-                      If set to "observe", then the sheriff self-demotes to
-                      observer mode.
-
-  -h, --help          Shows this help text
-
-If <procman_config_file> is specified, then the sheriff tries to load
-deputy commands from the file.
-
-If <script_name> is additionally specified, then the sheriff executes the
-named script once the config file is loaded.
-
-"""
-        % os.path.basename(sys.argv[0])
-    )
-    sys.exit(1)
-
-
 def main():
+    parser = argparse.ArgumentParser(
+        description="Process management operating console.",
+        epilog="If procman_config_file is specified, then the sheriff tries to load "
+        "deputy commands from the file.\n\nIf script_name is additionally "
+        "specified, then the sheriff executes the named script once the config "
+        "file is loaded.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument("procman_config_file", help="The configuration file to load")
+
+    parser.add_argument(
+        "--script", help="A script to execute after the config file is loaded."
+    )
+
+    parser.add_argument(
+        "-l",
+        "--lone-ranger",
+        action="store_true",
+        dest="spawn_deputy",
+        help="Automatically run a deputy within the sheriff process. This deputy terminates with the "
+        "sheriff, along with all the commands it hosts.",
+    )
+    parser.add_argument(
+        "-o",
+        "--observer",
+        action="store_true",
+        help="Runs in observer mode on startup.  This "
+        "prevents the sheriff from sending any "
+        "commands, and is useful for monitoring "
+        "existing procman_ros sheriff and/or deputy "
+        "instances.",
+    )
+    parser.add_argument(
+        "--on-script-complete",
+        choices=["exit", "observer"],
+        dest="script_done_action",
+        help='Only valid if a script is specified.  If set to "exit", then the sheriff exits when '
+        'the script is done executing. If set to "observe", then the sheriff self-demotes to '
+        "observer mode.",
+    )
+
+    args = parser.parse_args(sys.argv[1:])
+
     try:
-        opts, args = getopt.getopt(
-            sys.argv[1:],
-            "hlon",
-            ["help", "lone-ranger", "on-script-complete=", "no-gui", "observer"],
-        )
-    except getopt.GetoptError:
-        usage()
-        sys.exit(2)
+        cfg = sheriff.load_config_file(file(args.procman_config_file))
+    except Exception as xcp:
+        print("Unable to load config file.")
+        print(xcp)
+        sys.exit(1)
 
-    spawn_deputy = False
-    use_gui = True
-    script_done_action = None
-    observer = False
-
-    for optval, argval in opts:
-        if optval in ["-l", "--lone-ranger"]:
-            spawn_deputy = True
-        elif optval in ["-n", "--no-gui"]:
-            use_gui = False
-        elif optval in ["-o", "--observer"]:
-            observer = True
-        elif optval in ["--on-script-complete"]:
-            script_done_action = argval
-            if argval not in ["exit", "observe"]:
-                usage()
-        elif optval in ["-h", "--help"]:
-            usage()
-
-    cfg = None
-    script_name = None
-    if len(args) > 0:
-        try:
-            cfg = sheriff.load_config_file(file(args[0]))
-        except Exception as xcp:
-            print("Unable to load config file.")
-            print(xcp)
-            sys.exit(1)
-    if len(args) > 1:
-        script_name = args[1]
-
-    if observer:
+    if args.observer:
         if cfg:
             print(
                 "Loading a config file is not allowed when starting in observer mode."
             )
             sys.exit(1)
-        if spawn_deputy:
+        if args.spawn_deputy:
             print("Lone ranger mode and observer mode are mutually exclusive.")
             sys.exit(1)
 
     lcm_obj = LCM()
 
-    SheriffHeadless(lcm_obj, cfg, spawn_deputy, script_name, script_done_action).run()
+    SheriffHeadless(lcm_obj, cfg, args.spawn_deputy, args.script, args.script_done_action).run()
 
 
 if __name__ == "__main__":
