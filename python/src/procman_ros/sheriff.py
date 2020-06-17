@@ -580,6 +580,7 @@ class Sheriff:
         self.discover_pub = rospy.Publisher(
             "pm_discover", ProcmanDiscovery, queue_size=10
         )
+        self.orders_pub = rospy.Publisher("pm_orders", ProcmanOrders, queue_size=10)
 
         self._deputies = {}
         self._is_observer = False
@@ -685,30 +686,23 @@ class Sheriff:
         with self._lock:
             self._listeners.remove(sheriff_listener)
 
-    def _on_pmd_info(self, _, data):
-        # LCM callback. self._lock is not acquired
-        try:
-            info_msg = ProcmanDeputyInfo.decode(data)
-        except ValueError:
-            _warn("invalid deputy_info_t message")
-            return
-
-        now = _now_utime()
-        if (now - info_msg.utime) * 1e-6 > 30 and not self.is_observer():
+    def _on_pmd_info(self, msg):
+        now = rospy.Time.now()
+        if (now - msg.timestamp) * 1e-6 > rospy.Duration(30) and not self.is_observer():
             # ignore old messages
             return
 
-        #        _dbg("received pmd info from [{}]".format(info_msg.deputy_id))
+        #        _dbg("received pmd info from [{}]".format(msg.deputy_id))
 
         with self._lock:
-            deputy = self._get_or_make_deputy(info_msg.deputy_id)
+            deputy = self._get_or_make_deputy(msg.deputy_id)
 
             # Check if this is the first time we've heard from the deputy and
             # we already have a desired state for the deputy.
             if not deputy._last_update_utime and deputy._commands:
-                _dbg("First update from [{}]".format(info_msg.deputy_id))
+                _dbg("First update from [{}]".format(msg.deputy_id))
 
-            status_changes = deputy._update_from_deputy_info(info_msg)
+            status_changes = deputy._update_from_deputy_info(msg)
 
             self.__deputy_info_received(deputy)
             self._maybe_emit_status_change_signals(deputy, status_changes)
@@ -758,7 +752,8 @@ class Sheriff:
             # only send orders to a deputy if we've heard from it.
             if deputy._last_update_utime > 0:
                 msg = deputy._make_orders_message(self._id)
-                self._lcm.publish("PM_ORDERS", msg.encode())
+                self.orders_pub.publish(msg)
+
 
     def _add_command(
         self,

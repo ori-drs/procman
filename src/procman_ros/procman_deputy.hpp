@@ -88,6 +88,7 @@ class ProcmanDeputy {
 
     ros::Subscriber discovery_sub_;
     ros::Subscriber info_sub_;
+    ros::Publisher info_pub_;
     ros::Subscriber orders_sub_;
 
     ros::NodeHandle nh_;

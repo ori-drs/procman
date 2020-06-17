@@ -143,6 +143,7 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
 
   info_sub_ = nh_.subscribe("pm_info", 1, &ProcmanDeputy::InfoReceived, this);
   discovery_sub_ = nh_.subscribe("pm_discover", 1, &ProcmanDeputy::DiscoveryReceived, this);
+  info_pub_ = nh_.advertise<ProcmanDeputyInfo>("pm_info", 10);
   // Setup timers
 
   // When the deputy is first created, periodically send out discovery messages
@@ -455,7 +456,7 @@ void ProcmanDeputy::TransmitProcessInfo() {
   if (options_.verbose) {
     dbgt ("transmitting deputy info!\n");
   }
-  //TODO lcm_->publish("PM_INFO", &msg);
+  info_pub_.publish(msg);
 }
 
 void ProcmanDeputy::UpdateCpuTimes() {
