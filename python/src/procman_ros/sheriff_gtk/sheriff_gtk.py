@@ -65,12 +65,12 @@ class SheriffGtk(SheriffListener):
         self.script_manager.add_listener(self)
 
         # update very soon
-        gobject.timeout_add(100, lambda *s: self.deputies_ts.update() and False)
-        gobject.timeout_add(100, lambda *s: self._schedule_cmds_update() and False)
+        rospy.Timer(rospy.Duration(0.1), lambda *_: self.deputies_ts.update(), oneshot=True)
+        rospy.Timer(rospy.Duration(0.1), lambda *_: self._schedule_cmds_update(), oneshot=True)
 
         # and then periodically
-        gobject.timeout_add(1000, self._check_spawned_deputy)
-        gobject.timeout_add(1000, lambda *s: self._schedule_cmds_update() or True)
+        rospy.Timer(rospy.Duration(1), lambda *_: self._check_spawned_deputy())
+        rospy.Timer(rospy.Duration(1), lambda *_: self._schedule_cmds_update())
 
         # setup GUI
 
@@ -162,7 +162,7 @@ class SheriffGtk(SheriffListener):
         hpane.pack2(sw, resize=False)
         sw.add(self.deputies_tv)
 
-        gobject.timeout_add(1000, lambda *s: self.deputies_ts.update() or True)
+        gobject.timeout_add(1000, lambda *_: self.deputies_ts.update() or True)
 
         # stdout textview
         self.cmd_console = cc.SheriffCommandConsole(self.sheriff)
@@ -212,7 +212,7 @@ class SheriffGtk(SheriffListener):
             "WARNING: multiple sheriffs detected!  Switching to observer mode",
         )
         gobject.timeout_add(
-            6000, lambda *s: self.statusbar.pop(self.statusbar.get_context_id("main"))
+            6000, lambda *_: self.statusbar.pop(self.statusbar.get_context_id("main"))
         )
 
     def observer_status_changed(self, is_observer):
@@ -388,7 +388,7 @@ class SheriffGtk(SheriffListener):
 
         def _remove_msg_func(msg_id):
             return (
-                lambda *s: msg_id == self.statusbar_context_script_msg
+                lambda *_: msg_id == self.statusbar_context_script_msg
                 and self.statusbar.pop(cid)
             )
 
@@ -733,18 +733,6 @@ def main():
             print("Lone ranger mode and observer mode are mutually exclusive.")
             sys.exit(1)
 
-    lcm_obj = LCM()
-
-    def handle(*a):
-        try:
-            lcm_obj.handle()
-        except Exception:
-            traceback.print_exc()
-        return True
-
-    gobject.io_add_watch(lcm_obj, gobject.IO_IN, handle)
-    gobject.threads_init()
-
     if args.use_gui:
         gui = SheriffGtk()
         if args.observer:
@@ -767,13 +755,18 @@ def main():
                 print("\n    ".join(errors))
                 gui.cleanup(False)
                 sys.exit(1)
-            gobject.timeout_add(
-                200, lambda *s: gui.run_script(None, script, args.script_done_action)
+            rospy.Timer(
+                rospy.Duration(0.2),
+                # Use lambda with *_ as input - we ignore all parameters to the callback
+                callback=lambda *_: gui.run_script(
+                    None, script, args.script_done_action
+                ),
+                oneshot=True,
             )
 
-        signal.signal(signal.SIGINT, lambda *s: gtk.main_quit())
-        signal.signal(signal.SIGTERM, lambda *s: gtk.main_quit())
-        signal.signal(signal.SIGHUP, lambda *s: gtk.main_quit())
+        signal.signal(signal.SIGINT, lambda *_: gtk.main_quit())
+        signal.signal(signal.SIGTERM, lambda *_: gtk.main_quit())
+        signal.signal(signal.SIGHUP, lambda *_: gtk.main_quit())
         try:
             gtk.main()
         except KeyboardInterrupt:
@@ -784,7 +777,7 @@ def main():
             print("No script specified and running in headless mode.  Exiting")
             sys.exit(1)
         SheriffHeadless(
-            lcm_obj, cfg, args.spawn_deputy, args.script, args.script_done_action
+            cfg, args.spawn_deputy, args.script, args.script_done_action
         ).run()
 
 

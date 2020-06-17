@@ -76,8 +76,6 @@ class ProcmanDeputy {
 
     Procman* pm_;
 
-    //TODO lcm::LCM* lcm_;
-
     EventLoop event_loop_;
 
     std::string deputy_id_;
@@ -88,17 +86,17 @@ class ProcmanDeputy {
     int64_t deputy_start_time_;
     pid_t deputy_pid_;
 
-    //TODO lcm::Subscription* discovery_sub_;
-    //TODO lcm::Subscription* info_sub_;
-    //TODO lcm::Subscription* orders_sub_;
+    ros::Subscriber discovery_sub_;
+    ros::Subscriber info_sub_;
+    ros::Subscriber orders_sub_;
+
+    ros::NodeHandle nh_;
 
     TimerPtr discovery_timer_;
     TimerPtr one_second_timer_;
     TimerPtr introspection_timer_;
     TimerPtr quit_timer_;
     TimerPtr check_output_msg_timer_;
-
-    SocketNotifierPtr lcm_notifier_;
 
     std::map<ProcmanCommandPtr, DeputyCommand*> commands_;
 

@@ -130,14 +130,10 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
   cpu_load_(-1),
   deputy_start_time_(timestamp_now()),
   deputy_pid_(getpid()),
-  //TODO discovery_sub_(nullptr),
-  //TODO info_sub_(nullptr),
-  //TODO orders_sub_(nullptr),
   discovery_timer_(),
   one_second_timer_(),
   introspection_timer_(),
   quit_timer_(),
-  //TODO lcm_notifier_(nullptr),
   commands_(),
   exiting_(false),
   last_output_transmit_utime_(0),
@@ -145,14 +141,8 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
   output_msg_() {
   pm_ = new Procman();
 
-  // Initialize LCM
-
-  // Setup initial LCM subscriptions
-  //info_sub_ = lcm_->subscribe("PM_INFO", &ProcmanDeputy::InfoReceived, this);
-
-  //discovery_sub_ = lcm_->subscribe("PM_DISCOVER",
-  //    &ProcmanDeputy::DiscoveryReceived, this);
-
+  info_sub_ = nh_.subscribe("pm_info", 1, &ProcmanDeputy::InfoReceived, this);
+  discovery_sub_ = nh_.subscribe("pm_discover", 1, &ProcmanDeputy::DiscoveryReceived, this);
   // Setup timers
 
   // When the deputy is first created, periodically send out discovery messages
@@ -161,7 +151,7 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
       std::bind(&ProcmanDeputy::OnDiscoveryTimer, this));
   OnDiscoveryTimer();
 
-  // TODO
+  
   one_second_timer_ = event_loop_.AddTimer(1000, EventLoop::kRepeating, false,
       std::bind(&ProcmanDeputy::OnOneSecondTimer, this));
 
@@ -875,7 +865,6 @@ using namespace procman;
 
 int main (int argc, char **argv) {
   ros::init(argc, argv, "procman_ros_deputy");
-  ros::NodeHandle nh;
   const char *optstring = "hvfl:i:u:";
   int c;
   struct option long_opts[] = {

@@ -12,8 +12,8 @@ import procman_ros.sheriff as sheriff
 
 
 class SheriffHeadless(ScriptListener):
-    def __init__(self, lcm_obj, config, spawn_deputy, script_name, script_done_action):
-        self.sheriff = Sheriff(lcm_obj)
+    def __init__(self, config, spawn_deputy, script_name, script_done_action):
+        self.sheriff = Sheriff()
         self.script_manager = ScriptManager(self.sheriff)
         self.spawn_deputy = spawn_deputy
         self.spawned_deputy = None
@@ -21,7 +21,6 @@ class SheriffHeadless(ScriptListener):
         self.script_name = script_name
         self.script = None
         self.mainloop = None
-        self.lcm_obj = lcm_obj
         self._should_exit = False
         if script_done_action is None:
             self.script_done_action = "exit"
@@ -91,9 +90,9 @@ class SheriffHeadless(ScriptListener):
 
             self.script_manager.add_listener(self)
 
-        signal.signal(signal.SIGINT, lambda *s: self._request_exit())
-        signal.signal(signal.SIGTERM, lambda *s: self._request_exit())
-        signal.signal(signal.SIGHUP, lambda *s: self._request_exit())
+        signal.signal(signal.SIGINT, lambda *_: self._request_exit())
+        signal.signal(signal.SIGTERM, lambda *_: self._request_exit())
+        signal.signal(signal.SIGHUP, lambda *_: self._request_exit())
 
         try:
             if self.script:
@@ -175,9 +174,7 @@ def main():
             print("Lone ranger mode and observer mode are mutually exclusive.")
             sys.exit(1)
 
-    lcm_obj = LCM()
-
-    SheriffHeadless(lcm_obj, cfg, args.spawn_deputy, args.script, args.script_done_action).run()
+    SheriffHeadless(cfg, args.spawn_deputy, args.script, args.script_done_action).run()
 
 
 if __name__ == "__main__":
