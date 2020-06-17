@@ -656,7 +656,7 @@ def main():
             gui.on_spawn_deputy_mi_activate()
         if cfg:
             gui.load_config(cfg)
-            gui.load_save_dir = os.path.dirname(args[0])
+            gui.load_save_dir = os.path.dirname(args.procman_config_file)
 
         if args.script:
             script = gui.script_manager.get_script(args.script)
