@@ -204,7 +204,7 @@ def do_add_command_dialog(sheriff, cmds_ts, window):
     deputy_ids = [deputy.deputy_id for deputy in deputies ]
 
     # pick an initial command id
-    existing_ids = set([ cmd.command_id for cmd in sheriff.get_all_commands() ])
+    existing_ids = { cmd.command_id for cmd in sheriff.get_all_commands() }
     initial_cmd_id = ""
     for i in range(len(existing_ids) + 1):
         initial_cmd_id = "command_%d" % i

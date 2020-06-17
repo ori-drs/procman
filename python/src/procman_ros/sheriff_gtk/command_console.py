@@ -35,7 +35,7 @@ ANSI_CODES_TO_TEXT_TAG_PROPERTIES = { \
 
 def now_str (): return time.strftime ("[%H:%M:%S] ")
 
-class CommandExtraData(object):
+class CommandExtraData:
     def __init__ (self, text_tag_table):
         self.tb = gtk.TextBuffer (text_tag_table)
         self.printf_keep_count = [ 0, 0, 0, 0, 0, 0 ]
@@ -195,17 +195,17 @@ class SheriffCommandConsole(gtk.ScrolledWindow, SheriffListener):
         extradata = CommandExtraData (self.sheriff_tb.get_tag_table())
         self._cmd_extradata[command] = extradata
         self._add_text_to_buffer (self.sheriff_tb, now_str() +
-                "Added [%s] [%s] [%s]\n" % (deputy.deputy_id, command.command_id, command.exec_str))
+                "Added [{}] [{}] [{}]\n".format(deputy.deputy_id, command.command_id, command.exec_str))
 
     def _gtk_on_sheriff_command_removed (self, deputy, command):
         del self._cmd_extradata[command]
         self._add_text_to_buffer (self.sheriff_tb, now_str() +
-                "[%s] removed [%s] [%s]\n" % (deputy.deputy_id, command.command_id, command.exec_str))
+                "[{}] removed [{}] [{}]\n".format(deputy.deputy_id, command.command_id, command.exec_str))
 
     def _gtk_on_command_desired_changed (self, cmd,
             old_status, new_status):
         self._add_text_to_buffer (self.sheriff_tb, now_str() +
-                "[%s] new status: %s\n" % (cmd.command_id, new_status))
+                "[{}] new status: {}\n".format(cmd.command_id, new_status))
 
     def on_tb_populate_menu(self,textview, menu):
         sep = gtk.SeparatorMenuItem()

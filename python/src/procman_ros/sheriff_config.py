@@ -8,7 +8,7 @@ TokEOF = "EOF"
 TokComment = "Comment"
 TokInteger = "Integer"
 
-class Token(object):
+class Token:
     def __init__ (self, type, val):
         self.type = type
         self.val = val
@@ -34,7 +34,7 @@ line %d col %s %s
         s += " " * (self.offset - ntabs - 1) + "\t" * ntabs + "^"
         return s
 
-class Tokenizer(object):
+class Tokenizer:
     def __init__ (self, f):
         self.f = f
         self.unget_char = None
@@ -143,7 +143,7 @@ def escape_str(text):
 
     return "".join([ escape_char(c) for c in text ])
 
-class CommandNode(object):
+class CommandNode:
     def __init__ (self):
         self.attributes = { \
                 "exec" : None,
@@ -166,14 +166,14 @@ class CommandNode(object):
                 continue
             if key in [ "group", "command_id" ]:
                 continue
-            lines.append (s + "    %s = \"%s\";" % (key, escape_str(val)))
+            lines.append (s + "    {} = \"{}\";".format(key, escape_str(val)))
         lines.append (s + "}")
         return ("\n".join (lines))
 
     def __str__ (self):
         return self.to_config_string()
 
-class GroupNode(object):
+class GroupNode:
     def __init__ (self, name):
         self.name = name
         self.commands = []
@@ -203,7 +203,7 @@ class GroupNode(object):
             val = "\n".join([group.to_config_string(0) for group in list(self.subgroups.values())])
             val = val + "\n".join([cmd.to_config_string(0) for cmd in self.commands]) + "\n"
         else:
-            val = "%sgroup \"%s\" {\n" % (s, self.name)
+            val = "{}group \"{}\" {{\n".format(s, self.name)
             val = val + "\n".join([group.to_config_string(indent+1) for group in list(self.subgroups.values())])
             val = val + "\n".join([cmd.to_config_string(indent+1) for cmd in self.commands])
             val = val + "\n%s}\n" % s
@@ -212,7 +212,7 @@ class GroupNode(object):
     def __str__ (self):
         return self.to_config_string(0)
 
-class StartStopRestartActionNode(object):
+class StartStopRestartActionNode:
     def __init__(self, action_type, ident_type, ident, wait_status):
         assert action_type in ["start", "stop", "restart"]
         assert ident_type in [ "everything", "group", "cmd" ]
@@ -230,14 +230,14 @@ class StartStopRestartActionNode(object):
         if self.ident_type == "everything":
             ident_str = self.ident_type
         else:
-            ident_str = "%s \"%s\"" % (self.ident_type, escape_str(self.ident))
+            ident_str = "{} \"{}\"".format(self.ident_type, escape_str(self.ident))
         if self.wait_status is not None:
-            return "%s %s wait \"%s\";" % (self.action_type,
+            return "{} {} wait \"{}\";".format(self.action_type,
                     ident_str, self.wait_status)
         else:
-            return "%s %s;" % (self.action_type, ident_str)
+            return "{} {};".format(self.action_type, ident_str)
 
-class WaitMsActionNode(object):
+class WaitMsActionNode:
     def __init__(self, delay_ms):
         self.delay_ms = delay_ms
         self.action_type = "wait_ms"
@@ -245,7 +245,7 @@ class WaitMsActionNode(object):
     def __str__(self):
         return "wait ms %d;" % self.delay_ms
 
-class WaitStatusActionNode(object):
+class WaitStatusActionNode:
     def __init__(self, ident_type, ident, wait_status):
         self.ident_type = ident_type
         self.ident = ident
@@ -257,7 +257,7 @@ class WaitStatusActionNode(object):
         return "wait %s \"%s\" status \"%s\";" % \
                 (self.ident_type, escape_str(self.ident), self.wait_status)
 
-class RunScriptActionNode(object):
+class RunScriptActionNode:
     def __init__(self, script_name):
         self.script_name = script_name
         self.action_type = "run_script"
@@ -265,7 +265,7 @@ class RunScriptActionNode(object):
     def __str__(self):
         return "run_script \"%s\";" % escape_str(self.script_name)
 
-class ScriptNode(object):
+class ScriptNode:
     def __init__(self, name):
         self.name = name
         self.actions = []
@@ -282,7 +282,7 @@ class ScriptNode(object):
         val = val + "\n}\n"
         return val
 
-class ConfigNode(object):
+class ConfigNode:
     def __init__ (self):
         self.scripts = {}
         self.root_group = GroupNode("")

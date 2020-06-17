@@ -73,7 +73,7 @@ def make_empty_config():
     Sheriff.load_config"""
     return sheriff_config.ConfigNode()
 
-class Command(object):
+class Command:
     """A command managed by a deputy, which is in turn managed by the %Sheriff.
 
     \ingroup python_api
@@ -268,7 +268,7 @@ class Command(object):
         with self._lock:
             return self._status()
 
-class Deputy(object):
+class Deputy:
     """%Sheriff view of a deputy
 
     \ingroup python_api
@@ -400,7 +400,7 @@ class Deputy(object):
             new_status = cmd._status()
             if old_status != new_status:
                 status_changes.append((cmd, old_status, new_status))
-        updated_ids = set([ cmd_msg.cmd.command_id for cmd_msg in orders_msg.cmds ])
+        updated_ids = { cmd_msg.cmd.command_id for cmd_msg in orders_msg.cmds }
         for cmd in list(self._commands.values()):
             if cmd._command_id not in updated_ids:
                 old_status = cmd._status()
@@ -449,7 +449,7 @@ class Deputy(object):
             msg.cmds.append(cmd_msg)
         return msg
 
-class SheriffListener(object):
+class SheriffListener:
     """Inherit from this class to receive notifications of Sheriff activity.
     """
     def deputy_info_received(self, deputy_obj):
@@ -510,7 +510,7 @@ class SheriffListener(object):
         """
         return
 
-class Sheriff(object):
+class Sheriff:
     """Controls deputies and processes.
 
     \ingroup python_api

@@ -13,7 +13,7 @@ def _dbg(text):
     return
 #    sys.stderr.write("%s\n" % text)
 
-class StartStopRestartAction(object):
+class StartStopRestartAction:
     """Script action to start, stop, or restart a command or group.
 
     \ingroup python_api
@@ -39,14 +39,14 @@ class StartStopRestartAction(object):
         if self.ident_type == "everything":
             ident_str = self.ident_type
         else:
-            ident_str = "%s \"%s\"" % (self.ident_type, escape_str(self.ident))
+            ident_str = "{} \"{}\"".format(self.ident_type, escape_str(self.ident))
         if self.wait_status is not None:
-            return "%s %s wait \"%s\";" % (self.action_type,
+            return "{} {} wait \"{}\";".format(self.action_type,
                     ident_str, self.wait_status)
         else:
-            return "%s %s;" % (self.action_type, ident_str)
+            return "{} {};".format(self.action_type, ident_str)
 
-class WaitMsAction(object):
+class WaitMsAction:
     """Script action to wait a fixed number of milliseconds.
 
     \ingroup python_api
@@ -62,7 +62,7 @@ class WaitMsAction(object):
     def __str__(self):
         return "wait ms %d;" % self.delay_ms
 
-class WaitStatusAction(object):
+class WaitStatusAction:
     """Script action to wait for a command or group to change status.
 
     \ingroup python_api
@@ -82,7 +82,7 @@ class WaitStatusAction(object):
         return "wait %s \"%s\" status \"%s\";" % \
                 (self.ident_type, escape_str(self.ident), self.wait_status)
 
-class RunScriptAction(object):
+class RunScriptAction:
     """Script action to run a subscript.
 
     \ingroup python_api
@@ -98,7 +98,7 @@ class RunScriptAction(object):
     def __str__(self):
         return "run_script \"%s\";" % escape_str(self.script_name)
 
-class SheriffScript(object):
+class SheriffScript:
     """A simple script that can be executed by the Sheriff.
 
     \ingroup python_api
@@ -147,7 +147,7 @@ class SheriffScript(object):
             script.add_action(action)
         return script
 
-class ScriptExecutionContext(object):
+class ScriptExecutionContext:
     def __init__(self, sheriff, script):
         assert(script is not None)
         self.script = script
@@ -199,28 +199,28 @@ class SMSheriffListener(SheriffListener):
     def command_group_changed(self, cmd_obj):
         return
 
-class ScriptListener(object):
+class ScriptListener:
     """Inherit from this class to receive notifications of script activity.
     """
     def script_added(self, script_object):
         """Called when a script
         is added.
 
-        \param script_object a [SheriffScript](\ref procman_ros.sheriff_script.SheriffScript) object.
+        \\param script_object a [SheriffScript](\ref procman_ros.sheriff_script.SheriffScript) object.
         """
         return
 
     def script_removed(self, script_object):
         """Called when a script is removed.
 
-        \param script_object a [SheriffScript](\ref procman_ros.sheriff_script.SheriffScript) object.
+        \\param script_object a [SheriffScript](\ref procman_ros.sheriff_script.SheriffScript) object.
         """
         return
 
     def script_started(self, script_object):
         """Called when a script begins executing.
 
-        \param script_object a [SheriffScript](\ref procman_ros.sheriff_script.SheriffScript) object.
+        \\param script_object a [SheriffScript](\ref procman_ros.sheriff_script.SheriffScript) object.
         """
         return
 
@@ -228,8 +228,8 @@ class ScriptListener(object):
         """Called when a single action in a script begins to run.  (e.g., start
         a command)
 
-        \param script_object a [SheriffScript](\ref procman_ros.sheriff_script.SheriffScript) object
-        \param action one of:
+        \\param script_object a [SheriffScript](\ref procman_ros.sheriff_script.SheriffScript) object
+        \\param action one of:
           - [StartStopRestartAction](\ref procman_ros.sheriff_script.StartStopRestartAction),
           - [WaitMsAction](\ref procman_ros.sheriff_script.WaitMsAction),
           - [WaitStatusAction](\ref procman_ros.sheriff_script.WaitStatusAction),
@@ -244,7 +244,7 @@ class ScriptListener(object):
         """
         return
 
-class ScriptManager(object):
+class ScriptManager:
     """Manages scripts (saves, loads, executes).
     """
     def __init__(self, sheriff):
@@ -422,7 +422,7 @@ class ScriptManager(object):
                             path)
                     parstr = "->".join([s.name for s in (path + [subscript])])
                     for msg in sub_messages:
-                        err_msgs.append("%s - %s" % (parstr, msg))
+                        err_msgs.append("{} - {}".format(parstr, msg))
             else:
                 err_msgs.append("Unrecognized action %s" % action.action_type)
         return err_msgs
@@ -462,13 +462,13 @@ class ScriptManager(object):
             for cmd in self._waiting_on_commands:
                 cmd_status = cmd.status()
                 if not cmd_status in (RUNNING, STOPPED_OK, STOPPED_ERROR):
-                    _dbg("cmd [%s] not ready (%s)" % (cmd.command_id, cmd_status))
+                    _dbg("cmd [{}] not ready ({})".format(cmd.command_id, cmd_status))
                     return
         elif self._waiting_for_status == "stopped":
             for cmd in self._waiting_on_commands:
                 cmd_status = cmd.status()
                 if cmd_status not in (STOPPED_OK, STOPPED_ERROR):
-                    _dbg("cmd [%s] not ready (%s)" % (cmd.command_id, cmd_status))
+                    _dbg("cmd [{}] not ready ({})".format(cmd.command_id, cmd_status))
                     return
         else:
             raise ValueError("Invalid desired status %s" % \
@@ -482,7 +482,7 @@ class ScriptManager(object):
         self._condvar.notify()
 
     def on_command_status_changed(self, cmd, old_status, new_status):
-        _dbg("on_command_status_changed: [%s] : %s -> %s" % (cmd.command_id,
+        _dbg("on_command_status_changed: [{}] : {} -> {}".format(cmd.command_id,
             old_status, new_status))
         with self._lock:
             self._check_wait_action_status()

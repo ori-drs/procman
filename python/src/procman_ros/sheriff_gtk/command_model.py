@@ -142,8 +142,8 @@ class SheriffCommandModel(gtk.TreeStore):
             status_str = "Mixed"
 
         # aggregate deputy information
-        child_deps = set([ cmd_deps[child] for child in children \
-                if child in cmd_deps ])
+        child_deps = { cmd_deps[child] for child in children \
+                if child in cmd_deps }
         if len(child_deps) == 1:
             dep_str = child_deps.pop().deputy_id
         else:

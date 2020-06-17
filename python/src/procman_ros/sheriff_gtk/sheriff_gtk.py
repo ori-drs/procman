@@ -259,7 +259,7 @@ class SheriffGtk(SheriffListener):
         if not os.path.exists(self.config_fname):
             return
         try:
-            d = pickle.load(open(self.config_fname, "r"))
+            d = pickle.load(open(self.config_fname))
         except Exception as err:
             print(err)
             return
@@ -528,7 +528,7 @@ class SheriffGtk(SheriffListener):
             self.script_manager.save_config(cfg_node)
             try:
                 file (self.config_filename, "w").write(str(cfg_node))
-            except IOError as e:
+            except OSError as e:
                 msgdlg = gtk.MessageDialog (self.window,
                         gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
                         gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, str (e))

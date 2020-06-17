@@ -42,10 +42,10 @@ class SheriffHeadless(ScriptListener):
     def _start_script(self):
         if not self.script:
             return False
-        print(("Running script %s" % self.script_name))
+        print("Running script %s" % self.script_name)
         errors = self.script_manager.execute_script(self.script)
         if errors:
-            print(("Script failed to run.  Errors detected:\n" + "\n".join(errors)))
+            print("Script failed to run.  Errors detected:\n" + "\n".join(errors))
             self._shutdown()
             sys.exit(1)
         return False
@@ -103,7 +103,7 @@ class SheriffHeadless(ScriptListener):
                 self.lcm_obj.handle_timeout(200)
         except KeyboardInterrupt:
             pass
-        except IOError:
+        except OSError:
             pass
         finally:
             print("Sheriff terminating..")
