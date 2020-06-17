@@ -3,15 +3,21 @@ import threading
 
 from procman_ros.sheriff import SheriffListener, RUNNING, STOPPED_OK, STOPPED_ERROR
 
-from procman_ros.sheriff_config import ScriptNode, \
-                                   WaitStatusActionNode, \
-                                   StartStopRestartActionNode, \
-                                   RunScriptActionNode, \
-                                   escape_str
+from procman_ros.sheriff_config import (
+    ScriptNode,
+    WaitStatusActionNode,
+    StartStopRestartActionNode,
+    RunScriptActionNode,
+    escape_str,
+)
+
 
 def _dbg(text):
     return
+
+
 #    sys.stderr.write("%s\n" % text)
+
 
 class StartStopRestartAction:
     """Script action to start, stop, or restart a command or group.
@@ -19,9 +25,10 @@ class StartStopRestartAction:
     \ingroup python_api
 
     """
+
     def __init__(self, action_type, ident_type, ident, wait_status):
         assert action_type in ["start", "stop", "restart"]
-        assert ident_type in [ "everything", "group", "cmd" ]
+        assert ident_type in ["everything", "group", "cmd"]
         self.action_type = action_type
         self.ident_type = ident_type
         self.wait_status = wait_status
@@ -32,19 +39,22 @@ class StartStopRestartAction:
             assert self.ident is not None
 
     def toScriptNode(self):
-        return StartStopRestartActionNode(self.action_type,
-                self.ident_type, self.ident, self.wait_status)
+        return StartStopRestartActionNode(
+            self.action_type, self.ident_type, self.ident, self.wait_status
+        )
 
     def __str__(self):
         if self.ident_type == "everything":
             ident_str = self.ident_type
         else:
-            ident_str = "{} \"{}\"".format(self.ident_type, escape_str(self.ident))
+            ident_str = '{} "{}"'.format(self.ident_type, escape_str(self.ident))
         if self.wait_status is not None:
-            return "{} {} wait \"{}\";".format(self.action_type,
-                    ident_str, self.wait_status)
+            return '{} {} wait "{}";'.format(
+                self.action_type, ident_str, self.wait_status
+            )
         else:
             return "{} {};".format(self.action_type, ident_str)
+
 
 class WaitMsAction:
     """Script action to wait a fixed number of milliseconds.
@@ -52,6 +62,7 @@ class WaitMsAction:
     \ingroup python_api
 
     """
+
     def __init__(self, delay_ms):
         self.delay_ms = delay_ms
         self.action_type = "wait_ms"
@@ -62,12 +73,14 @@ class WaitMsAction:
     def __str__(self):
         return "wait ms %d;" % self.delay_ms
 
+
 class WaitStatusAction:
     """Script action to wait for a command or group to change status.
 
     \ingroup python_api
 
     """
+
     def __init__(self, ident_type, ident, wait_status):
         self.ident_type = ident_type
         self.ident = ident
@@ -75,12 +88,15 @@ class WaitStatusAction:
         self.action_type = "wait_status"
 
     def toScriptNode(self):
-        return WaitStatusActionNode(self.ident_type,
-                self.ident, self.wait_status)
+        return WaitStatusActionNode(self.ident_type, self.ident, self.wait_status)
 
     def __str__(self):
-        return "wait %s \"%s\" status \"%s\";" % \
-                (self.ident_type, escape_str(self.ident), self.wait_status)
+        return 'wait %s "%s" status "%s";' % (
+            self.ident_type,
+            escape_str(self.ident),
+            self.wait_status,
+        )
+
 
 class RunScriptAction:
     """Script action to run a subscript.
@@ -88,6 +104,7 @@ class RunScriptAction:
     \ingroup python_api
 
     """
+
     def __init__(self, script_name):
         self.script_name = script_name
         self.action_type = "run_script"
@@ -96,7 +113,8 @@ class RunScriptAction:
         return RunScriptActionNode(self.script_name)
 
     def __str__(self):
-        return "run_script \"%s\";" % escape_str(self.script_name)
+        return 'run_script "%s";' % escape_str(self.script_name)
+
 
 class SheriffScript:
     """A simple script that can be executed by the Sheriff.
@@ -104,6 +122,7 @@ class SheriffScript:
     \ingroup python_api
 
     """
+
     def __init__(self, name):
         self.name = name
         self.actions = []
@@ -118,7 +137,7 @@ class SheriffScript:
         return node
 
     def __str__(self):
-        val = "script \"%s\" {" % escape_str(self.name)
+        val = 'script "%s" {' % escape_str(self.name)
         for action in self.actions:
             val = val + "\n    " + str(action)
         val = val + "\n}\n"
@@ -128,28 +147,30 @@ class SheriffScript:
     def from_script_node(node):
         script = SheriffScript(node.name)
         for action_node in node.actions:
-            if action_node.action_type in [ "start", "stop", "restart" ]:
-                action = StartStopRestartAction(action_node.action_type,
-                        action_node.ident_type,
-                        action_node.ident,
-                        action_node.wait_status)
+            if action_node.action_type in ["start", "stop", "restart"]:
+                action = StartStopRestartAction(
+                    action_node.action_type,
+                    action_node.ident_type,
+                    action_node.ident,
+                    action_node.wait_status,
+                )
             elif action_node.action_type == "wait_ms":
                 action = WaitMsAction(action_node.delay_ms)
             elif action_node.action_type == "wait_status":
-                action = WaitStatusAction(action_node.ident_type,
-                        action_node.ident,
-                        action_node.wait_status)
+                action = WaitStatusAction(
+                    action_node.ident_type, action_node.ident, action_node.wait_status
+                )
             elif action_node.action_type == "run_script":
                 action = RunScriptAction(action_node.script_name)
             else:
-                raise ValueError("unrecognized action %s" % \
-                        action_node.action_type)
+                raise ValueError("unrecognized action %s" % action_node.action_type)
             script.add_action(action)
         return script
 
+
 class ScriptExecutionContext:
     def __init__(self, sheriff, script):
-        assert(script is not None)
+        assert script is not None
         self.script = script
         self.current_action = -1
         self.subscript_context = None
@@ -173,11 +194,11 @@ class ScriptExecutionContext:
 
         if action.action_type == "run_script":
             subscript = self.sheriff.get_script(action.script_name)
-            self.subscript_context = ScriptExecutionContext(self.sheriff,
-                    subscript)
+            self.subscript_context = ScriptExecutionContext(self.sheriff, subscript)
             return self.get_next_action()
         else:
             return action
+
 
 class SMSheriffListener(SheriffListener):
     def __init__(self, script_manager):
@@ -193,15 +214,16 @@ class SMSheriffListener(SheriffListener):
         return
 
     def command_status_changed(self, cmd_obj, old_status, new_status):
-        self._script_manager.on_command_status_changed(cmd_obj, old_status,
-                new_status)
+        self._script_manager.on_command_status_changed(cmd_obj, old_status, new_status)
 
     def command_group_changed(self, cmd_obj):
         return
 
+
 class ScriptListener:
     """Inherit from this class to receive notifications of script activity.
     """
+
     def script_added(self, script_object):
         """Called when a script
         is added.
@@ -244,9 +266,11 @@ class ScriptListener:
         """
         return
 
+
 class ScriptManager:
     """Manages scripts (saves, loads, executes).
     """
+
     def __init__(self, sheriff):
         self._sheriff = sheriff
 
@@ -259,7 +283,7 @@ class ScriptManager:
 
         self._to_emit = []
 
-        self._worker_thread_obj = threading.Thread(target = self._worker_thread)
+        self._worker_thread_obj = threading.Thread(target=self._worker_thread)
         self._exiting = False
         self._lock = threading.Lock()
         self._condvar = threading.Condition(self._lock)
@@ -271,30 +295,34 @@ class ScriptManager:
         self._listeners = []
         self._queued_events = []
 
-
     def __script_added(self, script_object):
-        self._queued_events.append(lambda listener:
-                listener.script_added(script_object))
+        self._queued_events.append(
+            lambda listener: listener.script_added(script_object)
+        )
         self._condvar.notify()
 
     def __script_removed(self, script_object):
-        self._queued_events.append(lambda listener:
-                listener.script_removed(script_object))
+        self._queued_events.append(
+            lambda listener: listener.script_removed(script_object)
+        )
         self._condvar.notify()
 
     def __script_started(self, script_object):
-        self._queued_events.append(lambda listener:
-                listener.script_started(script_object))
+        self._queued_events.append(
+            lambda listener: listener.script_started(script_object)
+        )
         self._condvar.notify()
 
     def __script_action_executing(self, script_object, action):
-        self._queued_events.append(lambda listener:
-                listener.script_action_executing(script_object, action))
+        self._queued_events.append(
+            lambda listener: listener.script_action_executing(script_object, action)
+        )
         self._condvar.notify()
 
     def __script_finished(self, script_object):
-        self._queued_events.append(lambda listener:
-                listener.script_finished(script_object))
+        self._queued_events.append(
+            lambda listener: listener.script_finished(script_object)
+        )
         self._condvar.notify()
 
     def add_listener(self, script_listener):
@@ -361,7 +389,9 @@ class ScriptManager:
 
     def _remove_script(self, script):
         if self._active_script_context is not None:
-            raise RuntimeError("Script removal is not allowed while a script is running.")
+            raise RuntimeError(
+                "Script removal is not allowed while a script is running."
+            )
 
         if script in self._scripts:
             self._scripts.remove(script)
@@ -379,7 +409,7 @@ class ScriptManager:
 
     def _get_action_commands(self, ident_type, ident):
         if ident_type == "cmd":
-            return [ self._sheriff.get_command(ident) ]
+            return [self._sheriff.get_command(ident)]
         elif ident_type == "group":
             return self._sheriff.get_commands_by_group(ident)
         elif ident_type == "everything":
@@ -393,12 +423,13 @@ class ScriptManager:
         err_msgs = []
         check_subscripts = True
         if path_to_root and script in path_to_root:
-            err_msgs.append("Infinite loop: script %s eventually calls itself" % script.name)
+            err_msgs.append(
+                "Infinite loop: script %s eventually calls itself" % script.name
+            )
             check_subscripts = False
 
         for action in script.actions:
-            if action.action_type in \
-                    [ "start", "stop", "restart", "wait_status" ]:
+            if action.action_type in ["start", "stop", "restart", "wait_status"]:
                 if action.ident_type == "cmd":
                     if not self._sheriff.get_command(action.ident):
                         err_msgs.append("No such command: %s" % action.ident)
@@ -413,13 +444,11 @@ class ScriptManager:
                 subscript = self._get_script(action.script_name)
                 if subscript is None:
                     # couldn't find that script.  error out
-                    err_msgs.append("Unknown script \"%s\"" % \
-                            action.script_name)
+                    err_msgs.append('Unknown script "%s"' % action.script_name)
                 elif check_subscripts:
                     # Recursively check the caleld script for errors.
                     path = path_to_root + [script]
-                    sub_messages = self._check_script_for_errors(subscript,
-                            path)
+                    sub_messages = self._check_script_for_errors(subscript, path)
                     parstr = "->".join([s.name for s in (path + [subscript])])
                     for msg in sub_messages:
                         err_msgs.append("{} - {}".format(parstr, msg))
@@ -471,19 +500,20 @@ class ScriptManager:
                     _dbg("cmd [{}] not ready ({})".format(cmd.command_id, cmd_status))
                     return
         else:
-            raise ValueError("Invalid desired status %s" % \
-                    self._waiting_for_status)
+            raise ValueError("Invalid desired status %s" % self._waiting_for_status)
 
         # all commands passed the status check.  schedule the next action
         self._waiting_on_commands = []
         self._waiting_for_status = None
-        self._next_action_time = max(time.time(),
-                self._last_script_action_time + 0.1)
+        self._next_action_time = max(time.time(), self._last_script_action_time + 0.1)
         self._condvar.notify()
 
     def on_command_status_changed(self, cmd, old_status, new_status):
-        _dbg("on_command_status_changed: [{}] : {} -> {}".format(cmd.command_id,
-            old_status, new_status))
+        _dbg(
+            "on_command_status_changed: [{}] : {} -> {}".format(
+                cmd.command_id, old_status, new_status
+            )
+        )
         with self._lock:
             self._check_wait_action_status()
 
@@ -508,12 +538,11 @@ class ScriptManager:
 
         assert action.action_type != "run_script"
 
-        self.__script_action_executing(self._active_script_context.script,
-                action)
+        self.__script_action_executing(self._active_script_context.script, action)
 
         # fixed time wait
         if action.action_type == "wait_ms":
-            self._next_action_time = time.time() + action.delay_ms / 1000.
+            self._next_action_time = time.time() + action.delay_ms / 1000.0
             return
 
         # find the commands that we're operating on
@@ -585,7 +614,8 @@ class ScriptManager:
         with self._lock:
             for script in self._scripts:
                 config_node.add_script(script.toScriptNode())
-#        file_obj.write(str(config_node))
+
+    #        file_obj.write(str(config_node))
 
     def shutdown(self):
         # signal worker thread
@@ -611,8 +641,7 @@ class ScriptManager:
                     self._condvar.wait()
 
                 # Is a script action ready for execution?
-                if self._next_action_time and \
-                        time.time() > self._next_action_time:
+                if self._next_action_time and time.time() > self._next_action_time:
                     self._execute_next_script_action()
 
                 # Queue up any listener notifications to invoke afer releasing the lock

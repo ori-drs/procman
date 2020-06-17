@@ -10,6 +10,7 @@ from procman_ros.sheriff_script import ScriptManager, ScriptListener
 from procman_ros.sheriff import Sheriff
 import procman_ros.sheriff as sheriff
 
+
 class SheriffHeadless(ScriptListener):
     def __init__(self, lcm_obj, config, spawn_deputy, script_name, script_done_action):
         self.sheriff = Sheriff(lcm_obj)
@@ -69,7 +70,7 @@ class SheriffHeadless(ScriptListener):
 
         # start a local deputy?
         if self.spawn_deputy:
-            args = ["rosrun", "procman_ros", "procman_ros_deputy", "-i", "localhost" ]
+            args = ["rosrun", "procman_ros", "procman_ros_deputy", "-i", "localhost"]
             self.spawned_deputy = subprocess.Popen(args)
         else:
             self.spawned_deputy = None
@@ -111,9 +112,10 @@ class SheriffHeadless(ScriptListener):
 
         return 0
 
+
 def usage():
     sys.stdout.write(
-"""usage: %s [options] [<procman_config_file> [<script_name>]]
+        """usage: %s [options] [<procman_config_file> [<script_name>]]
 
 Process management operating console.
 
@@ -141,13 +143,19 @@ deputy commands from the file.
 If <script_name> is additionally specified, then the sheriff executes the
 named script once the config file is loaded.
 
-""" % os.path.basename(sys.argv[0]))
+"""
+        % os.path.basename(sys.argv[0])
+    )
     sys.exit(1)
+
 
 def main():
     try:
-        opts, args = getopt.getopt( sys.argv[1:], 'hlon',
-                ['help','lone-ranger', 'on-script-complete=', 'no-gui', 'observer'] )
+        opts, args = getopt.getopt(
+            sys.argv[1:],
+            "hlon",
+            ["help", "lone-ranger", "on-script-complete=", "no-gui", "observer"],
+        )
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -158,17 +166,17 @@ def main():
     observer = False
 
     for optval, argval in opts:
-        if optval in [ '-l', '--lone-ranger' ]:
+        if optval in ["-l", "--lone-ranger"]:
             spawn_deputy = True
-        elif optval in [ '-n', '--no-gui' ]:
+        elif optval in ["-n", "--no-gui"]:
             use_gui = False
-        elif optval in [ '-o', '--observer' ]:
+        elif optval in ["-o", "--observer"]:
             observer = True
-        elif optval in [ '--on-script-complete' ]:
+        elif optval in ["--on-script-complete"]:
             script_done_action = argval
-            if argval not in [ "exit", "observe" ]:
+            if argval not in ["exit", "observe"]:
                 usage()
-        elif optval in [ '-h', '--help' ]:
+        elif optval in ["-h", "--help"]:
             usage()
 
     cfg = None
@@ -185,7 +193,9 @@ def main():
 
     if observer:
         if cfg:
-            print("Loading a config file is not allowed when starting in observer mode.")
+            print(
+                "Loading a config file is not allowed when starting in observer mode."
+            )
             sys.exit(1)
         if spawn_deputy:
             print("Lone ranger mode and observer mode are mutually exclusive.")
@@ -194,6 +204,7 @@ def main():
     lcm_obj = LCM()
 
     SheriffHeadless(lcm_obj, cfg, spawn_deputy, script_name, script_done_action).run()
+
 
 if __name__ == "__main__":
     main()
