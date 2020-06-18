@@ -16,6 +16,7 @@
 #include <procman_ros/ProcmanDiscovery.h>
 #include <procman_ros/ProcmanDeputyInfo.h>
 #include <procman_ros/ProcmanOutput.h>
+#include "std_msgs/String.h"
 
 namespace procman {
 
@@ -88,8 +89,12 @@ class ProcmanDeputy {
 
     ros::Subscriber discovery_sub_;
     ros::Subscriber info_sub_;
-    ros::Publisher info_pub_;
     ros::Subscriber orders_sub_;
+
+    ros::Publisher info_pub_;
+    ros::Publisher discover_pub_;
+    ros::Publisher output_pub_;
+
 
     ros::NodeHandle nh_;
 

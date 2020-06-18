@@ -46,35 +46,10 @@ namespace procman {
 
 #define PROCMAN_MAX_MESSAGE_AGE_USEC 60000000LL
 
-#define dbg(args...) fprintf(stderr, args)
-//#undef dbg
-//#define dbg(args...)
-
 static int64_t timestamp_now() {
   struct timeval tv;
   gettimeofday (&tv, NULL);
   return (int64_t) tv.tv_sec * 1000000 + tv.tv_usec;
-}
-
-static void dbgt (const char *fmt, ...) {
-  va_list ap;
-  va_start (ap, fmt);
-
-  char timebuf[80];
-  struct timeval now_tv;
-  gettimeofday(&now_tv, NULL);
-  struct tm now_tm;
-  localtime_r(&now_tv.tv_sec, &now_tm);
-  int pos = strftime(timebuf, sizeof(timebuf), "%FT%T", &now_tm);
-  pos += snprintf(timebuf + pos, sizeof(timebuf)-pos, ".%03d", (int)(now_tv.tv_usec / 1000));
-  strftime(timebuf + pos, sizeof(timebuf)-pos, "%z", &now_tm);
-
-  char buf[4096];
-  vsnprintf (buf, sizeof(buf), fmt, ap);
-
-  va_end (ap);
-
-  fprintf (stderr, "%s %s", timebuf, buf);
 }
 
 struct DeputyCommand {
@@ -144,6 +119,8 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
   info_sub_ = nh_.subscribe("pm_info", 1, &ProcmanDeputy::InfoReceived, this);
   discovery_sub_ = nh_.subscribe("pm_discover", 1, &ProcmanDeputy::DiscoveryReceived, this);
   info_pub_ = nh_.advertise<ProcmanDeputyInfo>("pm_info", 10);
+  discover_pub_ = nh_.advertise<ProcmanDiscovery>("pm_discover", 10);
+  orders_sub_ = nh_.subscribe("pm_orders", 1, &ProcmanDeputy::OrdersReceived, this);
   // Setup timers
 
   // When the deputy is first created, periodically send out discovery messages
@@ -166,9 +143,6 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
   event_loop_.SetPosixSignals({ SIGINT, SIGHUP, SIGQUIT, SIGTERM, SIGCHLD },
       std::bind(&ProcmanDeputy::OnPosixSignal, this, std::placeholders::_1));
 
-  //TODO lcm_notifier_ = event_loop_.AddSocket(lcm_->getFileno(),
-  //TODO     EventLoop::kRead, [this]() { lcm_->handle(); });
-
   output_msg_.deputy_id = deputy_id_;
   output_msg_.num_commands = 0;
 
@@ -176,25 +150,17 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
 }
 
 ProcmanDeputy::~ProcmanDeputy() {
-  // unsubscribe
-  //TODO if(orders_sub_) {
-  //TODO   lcm_->unsubscribe(orders_sub_);
-  //TODO }
-  //TODO if(info_sub_) {
-  //TODO   lcm_->unsubscribe(info_sub_);
-  //TODO }
-  //TODO if(discovery_sub_) {
-  //TODO   lcm_->unsubscribe(discovery_sub_);
-  //TODO }
   for (auto item : commands_) {
     delete item.second;
   }
-  //delete lcm_;
   delete pm_;
 }
 
 void ProcmanDeputy::Run() {
-  event_loop_.Run();
+  while (ros::ok()) {
+    ros::spinOnce();
+    event_loop_.IterateOnce();
+  }
 }
 
 void ProcmanDeputy::TransmitStr(const std::string& command_id, const char* str) {
@@ -241,11 +207,13 @@ void ProcmanDeputy::MaybePublishOutputMessage() {
 
   if (output_buf_size_ > 4096 || (ms_since_last_transmit >= 10)) {
     output_msg_.timestamp = ros::Time::now();
-    //TODO lcm_->publish("PM_OUTPUT", &output_msg_);
+    output_pub_.publish(output_msg_);
+    // clear the message after publishing
     output_msg_.num_commands = 0;
     output_msg_.command_ids.clear();
     output_msg_.text.clear();
     output_buf_size_ = 0;
+    
     last_output_transmit_utime_ = output_msg_.timestamp.toNSec() * 1e-3;
   }
 }
@@ -274,7 +242,7 @@ int ProcmanDeputy::StartCommand(DeputyCommand* mi, int desired_runid) {
   }
   ProcmanCommandPtr cmd = mi->cmd;
 
-  dbgt("[%s] start\n", mi->cmd_id.c_str());
+  ROS_DEBUG("[%s] start\n", mi->cmd_id.c_str());
 
   int status;
   mi->should_be_running = true;
@@ -320,12 +288,12 @@ int ProcmanDeputy::StopCommand(DeputyCommand* mi) {
   int64_t sigkill_time = mi->first_kill_time + (int64_t)(mi->stop_time_allowed * 1000000);
   bool okay;
   if(!mi->first_kill_time) {
-    dbgt("[%s] stop (signal %d)\n", mi->cmd_id.c_str(), mi->stop_signal);
+    ROS_DEBUG("[%s] stop (signal %d)\n", mi->cmd_id.c_str(), mi->stop_signal);
     okay = pm_->KillCommand(cmd, mi->stop_signal);
     mi->first_kill_time = now;
     mi->num_kills_sent++;
   } else if(now > sigkill_time) {
-    dbgt("[%s] stop (signal %d)\n", mi->cmd_id.c_str(), SIGKILL);
+    ROS_DEBUG("[%s] stop (signal %d)\n", mi->cmd_id.c_str(), SIGKILL);
     okay = pm_->KillCommand(cmd, SIGKILL);
   } else {
     return 0;
@@ -361,13 +329,13 @@ void ProcmanDeputy::CheckForStoppedCommands() {
 
     if (WIFSIGNALED (exit_status)) {
       const int signum = WTERMSIG (exit_status);
-      dbgt("[%s] terminated by signal %d (%s)\n",
+      ROS_DEBUG("[%s] terminated by signal %d (%s)\n",
           mi->cmd_id.c_str(), signum, strsignal (signum));
     } else if (exit_status != 0) {
-      dbgt("[%s] exited with status %d\n",
+      ROS_DEBUG("[%s] exited with status %d\n",
           mi->cmd_id.c_str(), WEXITSTATUS (exit_status));
     } else {
-      dbgt("[%s] exited\n", mi->cmd_id.c_str());
+      ROS_DEBUG("[%s] exited\n", mi->cmd_id.c_str());
     }
 
     if (WIFSIGNALED (exit_status)) {
@@ -388,7 +356,7 @@ void ProcmanDeputy::CheckForStoppedCommands() {
 
     // remove ?
     if (mi->remove_requested) {
-      dbgt ("[%s] remove\n", mi->cmd_id.c_str());
+      ROS_DEBUG("[%s] remove\n", mi->cmd_id.c_str());
       // cleanup the private data structure used
       commands_.erase(cmd);
       pm_->RemoveCommand(cmd);
@@ -407,7 +375,7 @@ void ProcmanDeputy::OnQuitTimer() {
     DeputyCommand* mi = item.second;
     ProcmanCommandPtr cmd = item.first;
     if (cmd->Pid()) {
-      dbgt("[%s] stop (signal %d)\n", mi->cmd_id.c_str(), SIGKILL);
+      ROS_DEBUG("[%s] stop (signal %d)\n", mi->cmd_id.c_str(), SIGKILL);
       pm_->KillCommand(cmd, SIGKILL);
     }
     commands_.erase(cmd);
@@ -415,7 +383,7 @@ void ProcmanDeputy::OnQuitTimer() {
     delete mi;
   }
 
-  dbgt ("stopping deputy main loop\n");
+  ROS_DEBUG("stopping deputy main loop\n");
   event_loop_.Quit();
 }
 
@@ -454,7 +422,7 @@ void ProcmanDeputy::TransmitProcessInfo() {
   }
 
   if (options_.verbose) {
-    dbgt ("transmitting deputy info!\n");
+    ROS_DEBUG("transmitting deputy info!\n");
   }
   info_pub_.publish(msg);
 }
@@ -537,7 +505,7 @@ void ProcmanDeputy::OnIntrospectionTimer() {
     }
   }
 
-  dbgt ("MARK - rss: %" PRId64 " kB vsz: %" PRId64
+  ROS_DEBUG("MARK - rss: %" PRId64 " kB vsz: %" PRId64
       " kB procs: %d (%d alive)\n",
       pinfo.rss / 1024, pinfo.vsize / 1024,
       (int) commands_.size(),
@@ -552,7 +520,7 @@ void ProcmanDeputy::OnPosixSignal(int signum) {
     CheckForStoppedCommands();
   } else {
     // quit was requested.  kill all processes and quit
-    dbgt ("received signal %d (%s).  stopping all processes\n", signum,
+    ROS_DEBUG("received signal %d (%s).  stopping all processes\n", signum,
         strsignal (signum));
 
     float max_stop_time_allowed = 1;
@@ -581,7 +549,7 @@ void ProcmanDeputy::OnPosixSignal(int signum) {
       }
     }
     if(all_dead) {
-      dbg("all child processes are dead, exiting.\n");
+      ROS_DEBUG("all child processes are dead, exiting.\n");
       event_loop_.Quit();
     }
   }
@@ -602,11 +570,10 @@ void ProcmanDeputy::OrdersReceived(const procman_ros::ProcmanOrdersConstPtr& ord
   if (exiting_) {
     return;
   }
-
   // ignore orders for other deputies
   if (orders->deputy_id != deputy_id_) {
     if (options_.verbose)
-      dbgt ("ignoring orders for other deputy %s\n", orders->deputy_id.c_str());
+      ROS_DEBUG("ignoring orders for other deputy %s\n", orders->deputy_id.c_str());
     return;
   }
 
@@ -626,12 +593,12 @@ void ProcmanDeputy::OrdersReceived(const procman_ros::ProcmanOrdersConstPtr& ord
   int action_taken = 0;
   int i;
   if (options_.verbose)
-    dbgt ("orders for me received with %d commands\n", orders->ncmds);
+    ROS_DEBUG("orders for me received with %d commands\n", orders->ncmds);
   for (i=0; i<orders->ncmds; i++) {
     const ProcmanCmdDesired& cmd_msg = orders->cmds[i];
 
     if (options_.verbose)
-      dbgt ("order %d: %s (%d, %d)\n",
+      ROS_DEBUG("order %d: %s (%d, %d)\n",
           i, cmd_msg.cmd.exec_str.c_str(),
           cmd_msg.desired_runid, cmd_msg.force_quit);
 
@@ -675,7 +642,7 @@ void ProcmanDeputy::OrdersReceived(const procman_ros::ProcmanOrdersConstPtr& ord
       commands_[cmd] = mi;
       action_taken = 1;
 
-      dbgt("[%s] new command [%s]\n", mi->cmd_id.c_str(),
+      ROS_DEBUG("[%s] new command [%s]\n", mi->cmd_id.c_str(),
           cmd->ExecStr().c_str());
     }
 
@@ -685,7 +652,7 @@ void ProcmanDeputy::OrdersReceived(const procman_ros::ProcmanOrdersConstPtr& ord
     // rename a command?  does not kill a running command, so effect does
     // not apply until command is restarted.
     if (cmd->ExecStr() != cmd_msg.cmd.exec_str) {
-      dbgt ("[%s] exec str -> [%s]\n", mi->cmd_id.c_str(),
+      ROS_DEBUG("[%s] exec str -> [%s]\n", mi->cmd_id.c_str(),
           cmd_msg.cmd.exec_str.c_str());
       pm_->SetCommandExecStr(cmd, cmd_msg.cmd.exec_str);
 
@@ -694,14 +661,14 @@ void ProcmanDeputy::OrdersReceived(const procman_ros::ProcmanOrdersConstPtr& ord
 
     // has auto-respawn changed?
     if (cmd_msg.cmd.auto_respawn != mi->auto_respawn) {
-      dbgt ("[%s] auto-respawn -> %d\n", mi->cmd_id.c_str(),
+      ROS_DEBUG("[%s] auto-respawn -> %d\n", mi->cmd_id.c_str(),
           cmd_msg.cmd.auto_respawn);
       mi->auto_respawn = cmd_msg.cmd.auto_respawn;
     }
 
     // change the group of a command?
     if (cmd_msg.cmd.group != mi->group) {
-      dbgt ("[%s] group -> [%s]\n", mi->cmd_id.c_str(),
+      ROS_DEBUG("[%s] group -> [%s]\n", mi->cmd_id.c_str(),
           cmd_msg.cmd.group.c_str());
       mi->group = cmd_msg.cmd.group;
       action_taken = 1;
@@ -709,14 +676,14 @@ void ProcmanDeputy::OrdersReceived(const procman_ros::ProcmanOrdersConstPtr& ord
 
     // change the stop signal of a command?
     if(mi->stop_signal != cmd_msg.cmd.stop_signal) {
-      dbg("[%s] stop signal -> [%d]\n", mi->cmd_id.c_str(),
+      ROS_DEBUG("[%s] stop signal -> [%d]\n", mi->cmd_id.c_str(),
           cmd_msg.cmd.stop_signal);
       mi->stop_signal = cmd_msg.cmd.stop_signal;
     }
 
     // change the stop time allowed of a command?
     if(mi->stop_time_allowed != cmd_msg.cmd.stop_time_allowed) {
-      dbg("[%s] stop time allowed -> [%f]\n", mi->cmd_id.c_str(),
+      ROS_DEBUG("[%s] stop time allowed -> [%f]\n", mi->cmd_id.c_str(),
           cmd_msg.cmd.stop_time_allowed);
       mi->stop_time_allowed = cmd_msg.cmd.stop_time_allowed;
     }
@@ -760,11 +727,11 @@ void ProcmanDeputy::OrdersReceived(const procman_ros::ProcmanOrdersConstPtr& ord
     ProcmanCommandPtr cmd = mi->cmd;
 
     if (cmd->Pid()) {
-      dbgt ("[%s] scheduling removal\n", mi->cmd_id.c_str());
+      ROS_DEBUG("[%s] scheduling removal\n", mi->cmd_id.c_str());
       mi->remove_requested = 1;
       StopCommand(mi);
     } else {
-      dbgt ("[%s] remove\n", mi->cmd_id.c_str());
+      ROS_DEBUG("[%s] remove\n", mi->cmd_id.c_str());
       // cleanup the private data structure used
       commands_.erase(cmd);
       pm_->RemoveCommand(cmd);
@@ -781,11 +748,12 @@ void ProcmanDeputy::OrdersReceived(const procman_ros::ProcmanOrdersConstPtr& ord
 
 void ProcmanDeputy::DiscoveryReceived(const procman_ros::ProcmanDiscoveryConstPtr& msg) {
   const int64_t now = timestamp_now();
+  ROS_INFO("DISO");
   if(now < deputy_start_time_ + DISCOVERY_TIME_MS * 1000) {
     // received a discovery message while still in discovery mode.  Check to
     // see if it's from a conflicting deputy.
     if(msg->transmitter_id == deputy_id_ && msg->nonce != deputy_pid_) {
-      dbgt("ERROR.  Detected another deputy [%s].  Aborting to avoid conflicts.\n",
+      ROS_DEBUG("ERROR.  Detected another deputy [%s].  Aborting to avoid conflicts.\n",
           msg->transmitter_id.c_str());
       exit(1);
     }
@@ -802,12 +770,12 @@ void ProcmanDeputy::InfoReceived(const ProcmanDeputyInfoConstPtr& msg) {
     // A different deputy has reported while we're still in discovery mode.
     // Check to see if the deputy names are in conflict.
     if(msg->deputy_id == deputy_id_) {
-      dbgt("ERROR.  Detected another deputy [%s].  Aborting to avoid conflicts.\n",
+      ROS_DEBUG("ERROR.  Detected another deputy [%s].  Aborting to avoid conflicts.\n",
           msg->deputy_id.c_str());
       exit(2);
     }
   } else {
-    dbgt("WARNING:  Still processing info messages while not in discovery mode??\n");
+    ROS_DEBUG("WARNING:  Still processing info messages while not in discovery mode??\n");
   }
 }
 
@@ -819,19 +787,17 @@ void ProcmanDeputy::OnDiscoveryTimer() {
     msg.timestamp = ros::Time::now();
     msg.transmitter_id = deputy_id_;
     msg.nonce = deputy_pid_;
-    //TODO lcm_->publish("PM_DISCOVER", &msg);
+    discover_pub_.publish(msg);
   } else {
-//    dbgt("Discovery period finished. Activating deputy.");
+//    ROS_DEBUG("Discovery period finished. Activating deputy.");
 
     // Discovery period is over. Stop subscribing to deputy info messages, and
     // start subscribing to sheriff orders.
     discovery_timer_->Stop();
 
-    //TODO lcm_->unsubscribe(info_sub_);
-    //TODO info_sub_ = NULL;
+    info_sub_.shutdown();
+    ROS_INFO("Subscribing to pm orders");
 
-    //TODO orders_sub_ = lcm_->subscribe("PM_ORDERS",
-    //TODO     &ProcmanDeputy::OrdersReceived, this);
 
     // Start the timer to periodically transmit status information
     one_second_timer_->Start();
