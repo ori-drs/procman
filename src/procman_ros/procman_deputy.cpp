@@ -124,15 +124,16 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
   orders_sub_ = nh_.subscribe("pm_orders", 1, &ProcmanDeputy::OrdersReceived, this);
   // Setup timers
 
+  // must create this before calling onDiscoveryTimer, otherwise it can be
+  // uninitialised and cause a segfault
+  one_second_timer_ = event_loop_.AddTimer(1000, EventLoop::kRepeating, false,
+      std::bind(&ProcmanDeputy::OnOneSecondTimer, this));
+
   // When the deputy is first created, periodically send out discovery messages
   // to see what other procman deputy processes are active
   discovery_timer_ = event_loop_.AddTimer(200, EventLoop::kRepeating, true,
       std::bind(&ProcmanDeputy::OnDiscoveryTimer, this));
   OnDiscoveryTimer();
-
-  
-  one_second_timer_ = event_loop_.AddTimer(1000, EventLoop::kRepeating, false,
-      std::bind(&ProcmanDeputy::OnOneSecondTimer, this));
 
   // periodically check memory usage
   introspection_timer_ = event_loop_.AddTimer(120000, EventLoop::kRepeating, false,
