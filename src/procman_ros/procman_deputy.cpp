@@ -103,7 +103,7 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
   event_loop_(),
   deputy_id_(options.deputy_id),
   cpu_load_(-1),
-  deputy_start_time_(timestamp_now()),
+  deputy_start_time_(),
   deputy_pid_(getpid()),
   discovery_timer_(),
   one_second_timer_(),
@@ -114,8 +114,10 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
   last_output_transmit_utime_(0),
   output_buf_size_(0),
   output_msg_() {
+  // Do not initialise start time in construction initialisation list, because
+  // it will give a false start time if roscore is not running
+  deputy_start_time_ = timestamp_now();  
   pm_ = new Procman();
-
   info_sub_ = nh_.subscribe("pm_info", 1, &ProcmanDeputy::InfoReceived, this);
   discovery_sub_ = nh_.subscribe("pm_discover", 1, &ProcmanDeputy::DiscoveryReceived, this);
   info_pub_ = nh_.advertise<procman_ros::ProcmanDeputyInfo>("pm_info", 10);
