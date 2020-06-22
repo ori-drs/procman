@@ -118,8 +118,9 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions& options) :
 
   info_sub_ = nh_.subscribe("pm_info", 1, &ProcmanDeputy::InfoReceived, this);
   discovery_sub_ = nh_.subscribe("pm_discover", 1, &ProcmanDeputy::DiscoveryReceived, this);
-  info_pub_ = nh_.advertise<ProcmanDeputyInfo>("pm_info", 10);
-  discover_pub_ = nh_.advertise<ProcmanDiscovery>("pm_discover", 10);
+  info_pub_ = nh_.advertise<procman_ros::ProcmanDeputyInfo>("pm_info", 10);
+  discover_pub_ = nh_.advertise<procman_ros::ProcmanDiscovery>("pm_discover", 10);
+  output_pub_ = nh_.advertise<procman_ros::ProcmanOutput>("pm_output", 10);
   orders_sub_ = nh_.subscribe("pm_orders", 1, &ProcmanDeputy::OrdersReceived, this);
   // Setup timers
 
@@ -748,7 +749,6 @@ void ProcmanDeputy::OrdersReceived(const procman_ros::ProcmanOrdersConstPtr& ord
 
 void ProcmanDeputy::DiscoveryReceived(const procman_ros::ProcmanDiscoveryConstPtr& msg) {
   const int64_t now = timestamp_now();
-  ROS_INFO("DISO");
   if(now < deputy_start_time_ + DISCOVERY_TIME_MS * 1000) {
     // received a discovery message while still in discovery mode.  Check to
     // see if it's from a conflicting deputy.

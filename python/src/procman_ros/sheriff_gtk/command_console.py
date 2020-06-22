@@ -323,8 +323,7 @@ class SheriffCommandConsole(gtk.ScrolledWindow, SheriffListener):
 
         self._add_text_to_buffer(extradata.tb, toadd)
 
-    def on_procman_output(self, channel, data):
-        msg = ProcmanOutput.decode(data)
+    def on_procman_output(self, msg):
         for i in range(msg.num_commands):
             command_id = msg.command_ids[i]
             text = msg.text[i]

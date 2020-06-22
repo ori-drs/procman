@@ -4,12 +4,6 @@
 #include <set>
 #include <string>
 
-
-//#include <procman_ros/  lcmtypes/procman_lcm/orders_t.hpp>
-//#include <procman_ros/  lcmtypes/procman_lcm/discovery_t.hpp>
-//#include <procman_ros/  lcmtypes/procman_lcm/deputy_info_t.hpp>
-//#include <procman_ros/  lcmtypes/procman_lcm/output_t.hpp>
-
 #include "procman_ros/event_loop.hpp"
 #include "procman/procman.hpp"
 #include <procman_ros/ProcmanOrders.h>
