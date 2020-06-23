@@ -451,7 +451,12 @@ class Deputy:
 
     def _make_orders_message(self, sheriff_id):
         msg = ProcmanOrders()
-        msg.timestamp = rospy.Time.now()
+        # Must use python's built in time to get wall clock time, as we want to ignore the
+        # zeroed clock that can sometimes happen when simulation time is used by ros
+        # Not doing this causes issues with the deputy
+        secs, nsecs = str(time.time()).split(".")
+        msg.timestamp.secs = int(secs)
+        msg.timestamp.nsecs = int(nsecs)
         msg.deputy_id = self._deputy_id
         msg.ncmds = len(self._commands)
         msg.sheriff_id = sheriff_id
