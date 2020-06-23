@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "event_loop.hpp"
+#include "procman_ros/event_loop.hpp"
 
 using procman::EventLoop;
 using procman::TimerPtr;

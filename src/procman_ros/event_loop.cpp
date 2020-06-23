@@ -1,5 +1,6 @@
 #include "procman_ros/event_loop.hpp"
 
+#include <ros/ros.h>
 #include <assert.h>
 #include <fcntl.h>
 #include <poll.h>
@@ -9,9 +10,6 @@
 
 #include <algorithm>
 #include <stdexcept>
-
-//#define dbg(...) do { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); } while(0)
-#define dbg(...)
 
 namespace procman {
 
@@ -55,11 +53,11 @@ SocketNotifier::SocketNotifier(int fd, EventLoop::EventType event_type,
 }
 
 SocketNotifier::~SocketNotifier() {
-  dbg("Destroying socket notifier %p for %d\n", this, fd_);
+  ROS_DEBUG("Destroying socket notifier %p for %d\n", this, fd_);
 
   auto iter = std::find(loop_->sockets_.begin(), loop_->sockets_.end(), this);
   if (iter != loop_->sockets_.end()) {
-    dbg("found in sockets_\n");
+    ROS_DEBUG("found in sockets_\n");
     loop_->sockets_.erase(iter);
   }
 
@@ -115,7 +113,7 @@ void Timer::SetInterval(int interval_ms) {
 }
 
 void Timer::Start() {
-  dbg("start: %p (%d, %p)", this, interval_ms_, loop_);
+  ROS_DEBUG("start: %p (%d, %p)", this, interval_ms_, loop_);
   if (active_) {
     return;
   }
@@ -234,7 +232,7 @@ void EventLoop::Quit() {
 }
 
 void EventLoop::IterateOnce() {
-  dbg("IterateOnce - timers: %d / %d / %d sockets: %d",
+  ROS_DEBUG("IterateOnce - timers: %d / %d / %d sockets: %d",
       (int)active_timers_.size(),
       (int)timers_to_reschedule_.size(),
       (int)inactive_timers_.size(),
@@ -274,7 +272,7 @@ void EventLoop::IterateOnce() {
     }
 
     // poll sockets for the maximum wait time.
-    dbg("poll timeout: %d", timeout_ms);
+    ROS_DEBUG("poll timeout: %d", timeout_ms);
     const int num_sockets_ready = poll(pfds, num_sockets, timeout_ms);
 
     // Check which sockets are ready, and queue them up for invoking callbacks.
@@ -282,7 +280,7 @@ void EventLoop::IterateOnce() {
       for (int index = 0; index < num_sockets; ++index) {
         struct pollfd* pfd = &pfds[index];
         if (pfd->revents & pfd->events) {
-          dbg("marking socket notifier %p (%d) for callback",
+          ROS_DEBUG("marking socket notifier %p (%d) for callback",
               sockets_[index], pfd->fd);
           sockets_ready_.push_back(sockets_[index]);
         }

@@ -18,9 +18,8 @@
 #include <map>
 #include <set>
 
-#include <ros/ros.h>
+#include "procman_ros/procman_deputy.hpp"
 
-#include "procman_deputy.hpp"
 using procman_ros::ProcmanCmdDesired;
 using procman_ros::ProcmanCmdDesiredConstPtr;
 using procman_ros::ProcmanDeputyInfoConstPtr;
@@ -164,6 +163,9 @@ void ProcmanDeputy::Run() {
   while (ros::ok()) {
     ros::spinOnce();
     event_loop_.IterateOnce();
+    if (event_loop_.isQuitting()){
+      ros::shutdown();  
+    }
   }
 }
 

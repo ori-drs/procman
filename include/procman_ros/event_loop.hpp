@@ -48,6 +48,10 @@ class EventLoop {
 
     void Quit();
 
+    bool isQuitting() const {
+      return quit_;
+    }
+
     void IterateOnce();
 
   private:

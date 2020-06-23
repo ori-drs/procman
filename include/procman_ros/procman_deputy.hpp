@@ -3,16 +3,15 @@
 
 #include <set>
 #include <string>
+#include <ros/ros.h>
 
-#include <lcm/lcm-cpp.hpp>
-
-#include <lcmtypes/procman_lcm/orders_t.hpp>
-#include <lcmtypes/procman_lcm/discovery_t.hpp>
-#include <lcmtypes/procman_lcm/deputy_info_t.hpp>
-#include <lcmtypes/procman_lcm/output_t.hpp>
-
-#include "event_loop.hpp"
+#include "procman_ros/event_loop.hpp"
 #include "procman/procman.hpp"
+#include <procman_ros/ProcmanOrders.h>
+#include <procman_ros/ProcmanDiscovery.h>
+#include <procman_ros/ProcmanDeputyInfo.h>
+#include <procman_ros/ProcmanOutput.h>
+#include "std_msgs/String.h"
 
 namespace procman {
 
@@ -34,12 +33,9 @@ class ProcmanDeputy {
     void Run();
 
   private:
-    void OrdersReceived(const lcm::ReceiveBuffer* rbuf, const std::string& channel,
-        const procman_lcm::orders_t* orders);
-    void DiscoveryReceived(const lcm::ReceiveBuffer* rbuf,
-        const std::string& channel, const procman_lcm::discovery_t* msg);
-    void InfoReceived(const lcm::ReceiveBuffer* rbuf,
-        const std::string& channel, const procman_lcm::deputy_info_t* msg);
+    void OrdersReceived(const procman_ros::ProcmanOrdersConstPtr& orders);
+    void DiscoveryReceived(const procman_ros::ProcmanDiscoveryConstPtr& msg);
+    void InfoReceived(const procman_ros::ProcmanDeputyInfoConstPtr& msg);
 
     void OnDiscoveryTimer();
 
@@ -75,8 +71,6 @@ class ProcmanDeputy {
 
     Procman* pm_;
 
-    lcm::LCM* lcm_;
-
     EventLoop event_loop_;
 
     std::string deputy_id_;
@@ -87,9 +81,16 @@ class ProcmanDeputy {
     int64_t deputy_start_time_;
     pid_t deputy_pid_;
 
-    lcm::Subscription* discovery_sub_;
-    lcm::Subscription* info_sub_;
-    lcm::Subscription* orders_sub_;
+    ros::Subscriber discovery_sub_;
+    ros::Subscriber info_sub_;
+    ros::Subscriber orders_sub_;
+
+    ros::Publisher info_pub_;
+    ros::Publisher discover_pub_;
+    ros::Publisher output_pub_;
+
+
+    ros::NodeHandle nh_;
 
     TimerPtr discovery_timer_;
     TimerPtr one_second_timer_;
@@ -97,15 +98,13 @@ class ProcmanDeputy {
     TimerPtr quit_timer_;
     TimerPtr check_output_msg_timer_;
 
-    SocketNotifierPtr lcm_notifier_;
-
     std::map<ProcmanCommandPtr, DeputyCommand*> commands_;
 
     bool exiting_;
 
     int64_t last_output_transmit_utime_;
     int output_buf_size_;
-    procman_lcm::output_t output_msg_;
+    procman_ros::ProcmanOutput output_msg_;
 };
 
 }  // namespace procman
