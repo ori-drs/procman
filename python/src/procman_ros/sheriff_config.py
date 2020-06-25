@@ -450,7 +450,7 @@ class Parser:
         }
 
         if attrib_name not in attribs:
-            self._fail("Unrecognized attribute {}".fomrat(attrib_name))
+            self._fail("Unrecognized attribute {}".format(attrib_name))
 
         self._eat_token_or_fail(TokAssign, "Expected '='")
         if attribs[attrib_name] == TokString:
