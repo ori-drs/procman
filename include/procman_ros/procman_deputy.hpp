@@ -5,7 +5,7 @@
 #include <string>
 #include <ros/ros.h>
 
-#include "procman_ros/event_loop.hpp"
+#include "procman_ros/socket_monitor.hpp"
 #include "procman/procman.hpp"
 #include <procman_ros/ProcmanOrders.h>
 #include <procman_ros/ProcmanDiscovery.h>
@@ -73,7 +73,7 @@ class ProcmanDeputy {
 
     Procman* pm_;
 
-    EventLoop event_loop_;
+    SocketMonitor event_loop_;
 
     std::string deputy_id_;
 

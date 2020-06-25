@@ -8,14 +8,14 @@
 
 namespace procman {
 
-class EventLoop;
+class SocketMontior;
 
 class SocketNotifier;
 
 
 typedef std::shared_ptr<SocketNotifier> SocketNotifierPtr;
 
-class EventLoop {
+class SocketMonitor {
   public:
     enum EventType {
       kRead,
@@ -23,9 +23,9 @@ class EventLoop {
       kError
     };
 
-    EventLoop();
+    SocketMonitor();
 
-    ~EventLoop();
+    ~SocketMonitor();
 
     SocketNotifierPtr AddSocket(int fd, EventType event_type,
         std::function<void()> callback);

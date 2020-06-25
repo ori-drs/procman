@@ -266,7 +266,7 @@ int ProcmanDeputy::StartCommand(DeputyCommand *mi, int desired_runid) {
 
   fcntl(cmd->StdoutFd(), F_SETFL, O_NONBLOCK);
   mi->stdout_notifier = event_loop_.AddSocket(
-      cmd->StdoutFd(), EventLoop::kRead,
+      cmd->StdoutFd(), SocketMonitor::kRead,
       std::bind(&ProcmanDeputy::OnProcessOutputAvailable, this, mi));
 
   mi->actual_runid = desired_runid;

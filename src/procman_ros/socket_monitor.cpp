@@ -1,4 +1,4 @@
-#include "procman_ros/event_loop.hpp"
+#include "procman_ros/socket_monitor.hpp"
 
 #include <ros/ros.h>
 #include <assert.h>
@@ -26,22 +26,22 @@ class SocketNotifier {
     ~SocketNotifier();
 
   private:
-    SocketNotifier(int fd, EventLoop::EventType event_type,
+    SocketNotifier(int fd, SocketMonitor::EventType event_type,
         std::function<void()> callback,
-        EventLoop* loop);
+        SocketMonitor* loop);
 
-    friend class EventLoop;
+    friend class SocketMonitor;
 
     int fd_;
-    EventLoop::EventType event_type_;
+    SocketMonitor::EventType event_type_;
     std::function<void()> callback_;
     std::weak_ptr<SocketNotifier> weak_;
-    EventLoop* loop_;
+    SocketMonitor* loop_;
 };
 
-SocketNotifier::SocketNotifier(int fd, EventLoop::EventType event_type,
+SocketNotifier::SocketNotifier(int fd, SocketMonitor::EventType event_type,
         std::function<void()> callback,
-        EventLoop* loop) :
+        SocketMonitor* loop) :
   fd_(fd),
   event_type_(event_type),
   callback_(callback),
@@ -68,10 +68,10 @@ SocketNotifier::~SocketNotifier() {
   fd_ = -1;
 }
 
-EventLoop::EventLoop() :
+SocketMonitor::SocketMonitor() :
   quit_(false) {}
 
-EventLoop::~EventLoop() {
+SocketMonitor::~SocketMonitor() {
   if (g_signal_fds[0] != -1) {
     close(g_signal_fds[0]);
     close(g_signal_fds[1]);
@@ -80,7 +80,7 @@ EventLoop::~EventLoop() {
   }
 }
 
-SocketNotifierPtr EventLoop::AddSocket(int fd,
+SocketNotifierPtr SocketMonitor::AddSocket(int fd,
     EventType event_type, std::function<void()> callback) {
   if (event_type != kRead &&
       event_type != kWrite &&
@@ -97,10 +97,10 @@ static void signal_handler (int signum) {
   (void) wstatus;
 }
 
-void EventLoop::SetPosixSignals(const std::vector<int>& signums,
+void SocketMonitor::SetPosixSignals(const std::vector<int>& signums,
     std::function<void(int signum)> callback) {
   if (g_signal_fds[0] != -1) {
-    throw std::runtime_error("EventLoop POSIX signals already set");
+    throw std::runtime_error("SocketMonitor POSIX signals already set");
   }
 
   if (0 != pipe(g_signal_fds)) {
@@ -123,7 +123,7 @@ void EventLoop::SetPosixSignals(const std::vector<int>& signums,
       });
 }
 
-void EventLoop::IterateOnce() {
+void SocketMonitor::IterateOnce() {
   // Prepare pollfd structure
   const int num_sockets = sockets_.size();
   struct pollfd* pfds = new struct pollfd[num_sockets];

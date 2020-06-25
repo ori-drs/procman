@@ -44,15 +44,12 @@ add_library(procman_ros SHARED src/procman/exec_string_utils.cpp
 target_link_libraries(procman_ros util)
 
 add_executable(deputy
-               src/procman_ros/event_loop.cpp
+               src/procman_ros/socket_monitor.cpp
                src/procman_ros/procman_deputy.cpp)
 
 target_link_libraries(deputy procman_ros ${catkin_LIBRARIES})
 
 add_dependencies(deputy ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-#add_executable(event_loop_test src/procman_ros/event_loop_test.cpp
-#                               src/procman_ros/event_loop.cpp)
 
 ## Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}/
