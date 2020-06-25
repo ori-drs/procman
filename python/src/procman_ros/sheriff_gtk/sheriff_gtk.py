@@ -173,16 +173,19 @@ class SheriffGtk(SheriffListener):
         self.load_settings()
 
         self.window.show_all()
-        
+
         # update very soon
         # Update information about deputies
-        rospy.Timer(rospy.Duration(0.1), lambda *_: self.deputies_ts.update(), oneshot=True)
-        rospy.Timer(rospy.Duration(0.1), lambda *_: self._schedule_cmds_update(), oneshot=True)
+        rospy.Timer(
+            rospy.Duration(0.1), lambda *_: self.deputies_ts.update(), oneshot=True
+        )
+        rospy.Timer(
+            rospy.Duration(0.1), lambda *_: self._schedule_cmds_update(), oneshot=True
+        )
 
         # and then periodically
         rospy.Timer(rospy.Duration(1), lambda *_: self._check_spawned_deputy())
         rospy.Timer(rospy.Duration(1), lambda *_: self._schedule_cmds_update())
-
 
     def command_added(self, deputy_obj, cmd_obj):
         self._schedule_cmds_update()

@@ -50,53 +50,6 @@ static int64_t timestamp_now() {
   return (int64_t)tv.tv_sec * 1000000 + tv.tv_usec;
 }
 
-class SocketNotifier {
-  public:
-    ~SocketNotifier();
-
-  private:
-    SocketNotifier(int fd, EventLoop::EventType event_type,
-        std::function<void()> callback,
-        EventLoop* loop);
-
-    friend class EventLoop;
-
-    int fd_;
-    EventLoop::EventType event_type_;
-    std::function<void()> callback_;
-    std::weak_ptr<SocketNotifier> weak_;
-    EventLoop* loop_;
-};
-
-SocketNotifier::SocketNotifier(int fd, EventLoop::EventType event_type,
-        std::function<void()> callback,
-        EventLoop* loop) :
-  fd_(fd),
-  event_type_(event_type),
-  callback_(callback),
-  loop_(loop) {
-}
-
-SocketNotifier::~SocketNotifier() {
-  ROS_DEBUG("Destroying socket notifier %p for %d\n", this, fd_);
-
-  auto iter = std::find(loop_->sockets_.begin(), loop_->sockets_.end(), this);
-  if (iter != loop_->sockets_.end()) {
-    ROS_DEBUG("found in sockets_\n");
-    loop_->sockets_.erase(iter);
-  }
-
-  // If the SocketNotifier being destroyed is a socket queued up for callback,
-  // then zero out its place in the queue, but don't remove it to avoid messing
-  // with queue iteration.
-  auto ready_iter = std::find(loop_->sockets_ready_.begin(),
-      loop_->sockets_ready_.end(), this);
-  if (iter != loop_->sockets_ready_.end()) {
-    *ready_iter = nullptr;
-  }
-  fd_ = -1;
-}
-
 struct DeputyCommand {
   ProcmanCommandPtr cmd;
 
@@ -203,67 +156,8 @@ ProcmanDeputy::~ProcmanDeputy() {
 void ProcmanDeputy::Run() {
   while (ros::ok()) {
     ros::spinOnce();
-    ProcessSockets();
+    event_loop_.IterateOnce();
   }
-}
-
-void ProcmanDeputy::ProcessSockets() {
-  if (!sockets_.empty()) {
-    // If there are sockets in the event loop, then check them
-    int timeout_ms = -1;
-    if (first_timer) {
-      timeout_ms = std::max(0,
-          static_cast<int>((first_timer->deadline_ - Now()) / 1000));
-    }
-
-    // Prepare pollfd structure
-    const int num_sockets = sockets_.size();
-    struct pollfd* pfds = new struct pollfd[num_sockets];
-    for (int index = 0; index < num_sockets; ++index) {
-      pfds[index].fd = sockets_[index]->fd_;
-      switch (sockets_[index]->event_type_) {
-        case kRead:
-          pfds[index].events = POLLIN;
-          break;
-        case kWrite:
-          pfds[index].events = POLLOUT;
-          break;
-        case kError:
-          pfds[index].events = POLLERR;
-          break;
-        default:
-          pfds[index].events = POLLIN;
-          break;
-      }
-      pfds[index].revents = 0;
-    }
-
-    // poll sockets for the maximum wait time.
-    ROS_DEBUG("poll timeout: %d", timeout_ms);
-    const int num_sockets_ready = poll(pfds, num_sockets, timeout_ms);
-
-    // Check which sockets are ready, and queue them up for invoking callbacks.
-    if (num_sockets_ready) {
-      for (int index = 0; index < num_sockets; ++index) {
-        struct pollfd* pfd = &pfds[index];
-        if (pfd->revents & pfd->events) {
-          ROS_DEBUG("marking socket notifier %p (%d) for callback",
-              sockets_[index], pfd->fd);
-          sockets_ready_.push_back(sockets_[index]);
-        }
-      }
-    }
-    // Call callbacks for sockets that are ready
-    for (int index = 0; index < sockets_ready_.size(); ++index) {
-      SocketNotifier* notifier = sockets_ready_[index];
-      if (!notifier) {
-        continue;
-      }
-      notifier->callback_();
-    }
-    sockets_ready_.clear();
-
-    delete[] pfds;
 }
 
 void ProcmanDeputy::TransmitStr(const std::string &command_id,
