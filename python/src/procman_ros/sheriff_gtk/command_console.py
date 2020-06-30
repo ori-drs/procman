@@ -327,7 +327,7 @@ class SheriffCommandConsole(gtk.ScrolledWindow, SheriffListener):
         for i in range(msg.num_commands):
             command_id = msg.command_ids[i]
             text = msg.text[i]
-            self._handle_command_output(command_id, text)
+            glib.idle_add(self._handle_command_output, command_id, text)
 
     def show_command_buffer(self, cmd):
         extradata = self._cmd_extradata.get(cmd, None)
