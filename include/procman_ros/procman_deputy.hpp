@@ -5,7 +5,7 @@
 #include <string>
 #include <ros/ros.h>
 
-#include "procman_ros/event_loop.hpp"
+#include "procman_ros/socket_monitor.hpp"
 #include "procman/procman.hpp"
 #include <procman_ros/ProcmanOrders.h>
 #include <procman_ros/ProcmanDiscovery.h>
@@ -37,13 +37,13 @@ class ProcmanDeputy {
     void DiscoveryReceived(const procman_ros::ProcmanDiscoveryConstPtr& msg);
     void InfoReceived(const procman_ros::ProcmanDeputyInfoConstPtr& msg);
 
-    void OnDiscoveryTimer();
+    void OnDiscoveryTimer(const ros::WallTimerEvent& event);
 
-    void OnOneSecondTimer();
+    void OnOneSecondTimer(const ros::WallTimerEvent& event);
 
-    void OnIntrospectionTimer();
+    void OnIntrospectionTimer(const ros::WallTimerEvent& event);
 
-    void OnQuitTimer();
+    void OnQuitTimer(const ros::WallTimerEvent& event);
 
     void OnPosixSignal(int signum);
 
@@ -65,13 +65,15 @@ class ProcmanDeputy {
 
     void PrintfAndTransmit(const std::string& command_id, const char *fmt, ...);
 
-    void MaybePublishOutputMessage();
+    void MaybePublishOutputMessage(const ros::WallTimerEvent& event);
+
+    void ProcessSockets();
 
     DeputyOptions options_;
 
     Procman* pm_;
 
-    EventLoop event_loop_;
+    SocketMonitor event_loop_;
 
     std::string deputy_id_;
 
@@ -92,11 +94,11 @@ class ProcmanDeputy {
 
     ros::NodeHandle nh_;
 
-    TimerPtr discovery_timer_;
-    TimerPtr one_second_timer_;
-    TimerPtr introspection_timer_;
-    TimerPtr quit_timer_;
-    TimerPtr check_output_msg_timer_;
+    ros::WallTimer discovery_timer_;
+    ros::WallTimer one_second_timer_;
+    ros::WallTimer introspection_timer_;
+    ros::WallTimer quit_timer_;
+    ros::WallTimer check_output_msg_timer_;
 
     std::map<ProcmanCommandPtr, DeputyCommand*> commands_;
 

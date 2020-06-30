@@ -173,16 +173,15 @@ class SheriffGtk(SheriffListener):
         self.load_settings()
 
         self.window.show_all()
-        
+
         # update very soon
         # Update information about deputies
-        rospy.Timer(rospy.Duration(0.1), lambda *_: self.deputies_ts.update(), oneshot=True)
-        rospy.Timer(rospy.Duration(0.1), lambda *_: self._schedule_cmds_update(), oneshot=True)
+        gobject.timeout_add(100, lambda *_: self.deputies_ts.update() and False)
+        gobject.timeout_add(100, lambda *_: self._schedule_cmds_update() and False)
 
         # and then periodically
-        rospy.Timer(rospy.Duration(1), lambda *_: self._check_spawned_deputy())
-        rospy.Timer(rospy.Duration(1), lambda *_: self._schedule_cmds_update())
-
+        gobject.timeout_add(1000, self._check_spawned_deputy)
+        gobject.timeout_add(1000, lambda *_: self._schedule_cmds_update() or True)
 
     def command_added(self, deputy_obj, cmd_obj):
         self._schedule_cmds_update()
@@ -757,13 +756,9 @@ def main():
                 print("\n    ".join(errors))
                 gui.cleanup(False)
                 sys.exit(1)
-            rospy.Timer(
-                rospy.Duration(0.2),
-                # Use lambda with *_ as input - we ignore all parameters to the callback
-                callback=lambda *_: gui.run_script(
-                    None, script, args.script_done_action
-                ),
-                oneshot=True,
+            # Use lambda with *_ as input - we ignore all parameters to the callback
+            gobject.timeout_add(
+                200, lambda *_: gui.run_script(None, script, args.script_done_action),
             )
 
         signal.signal(signal.SIGINT, lambda *_: gtk.main_quit())
