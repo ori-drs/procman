@@ -7,14 +7,11 @@ import argparse
 import subprocess
 import signal
 import pickle
-import rospy
 import rospkg
 
 import glib
 import gobject
 import gtk
-
-from lcm import LCM
 
 import procman_ros.sheriff as sheriff
 from procman_ros.sheriff import Sheriff, SheriffListener
@@ -709,6 +706,12 @@ def main():
         'the script is done executing. If set to "observe", then the sheriff self-demotes to '
         "observer mode.",
     )
+    parser.add_argument(
+        "--no-roscore",
+        action="store_true",
+        help="By default, if there is no roscore running, the sheriff will start one. Use this flag to disable that "
+        "behaviour.",
+    )
 
     args = parser.parse_args(sys.argv[1:])
 
@@ -718,6 +721,30 @@ def main():
         print("Unable to load config file.")
         print(xcp)
         sys.exit(1)
+
+    if not args.no_roscore:
+        # Check if roscore is running by looking for the /rosout topic
+        try:
+            import rostopic
+
+            rostopic.get_topic_class("/rosout")
+            roscore_running = True
+        except rostopic.ROSTopicIOException as e:
+            roscore_running = False
+
+        if not roscore_running:
+            # Using os.setpgrp, the roscore subprocess becomes detached from the parent process group,
+            # so it no longer receives sigint when we sent ctrl+c on the terminal to kill the sheriff
+            devnull = open(os.devnull, "wb")
+            subprocess.Popen(
+                "roscore",
+                stdout=devnull,  # should be subprocess.DEVNULL in >3.3
+                stderr=devnull,
+                preexec_fn=os.setpgrp,
+            )
+            # allow a bit of time to start the core so that we don't get a warning
+            import time
+            time.sleep(1)
 
     if args.observer:
         if cfg:
