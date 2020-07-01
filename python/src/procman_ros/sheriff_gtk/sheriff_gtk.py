@@ -673,7 +673,8 @@ def main():
         "--script", help="A script to execute after the config file is loaded."
     )
 
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
         "-l",
         "--lone-ranger",
         action="store_true",
@@ -681,14 +682,7 @@ def main():
         help="Automatically run a deputy within the sheriff process. This deputy terminates with the "
         "sheriff, along with all the commands it hosts.",
     )
-    parser.add_argument(
-        "-n",
-        "--no-gui",
-        action="store_false",
-        dest="use_gui",
-        help="Runs in headless mode (no GUI).",
-    )
-    parser.add_argument(
+    mode.add_argument(
         "-o",
         "--observer",
         action="store_true",
@@ -698,6 +692,15 @@ def main():
         "existing procman_ros sheriff and/or deputy "
         "instances.",
     )
+
+    parser.add_argument(
+        "-n",
+        "--no-gui",
+        action="store_false",
+        dest="use_gui",
+        help="Runs in headless mode (no GUI).",
+    )
+
     parser.add_argument(
         "--on-script-complete",
         choices=["exit", "observer"],
@@ -756,9 +759,6 @@ def main():
             print(
                 "Refusing to start an observer without a gui -- that would be useless."
             )
-            sys.exit(1)
-        if args.spawn_deputy:
-            print("Lone ranger mode and observer mode are mutually exclusive.")
             sys.exit(1)
 
     if args.use_gui:
