@@ -1102,7 +1102,7 @@ class Sheriff:
 
             self._add_command(
                 cmd_node.attributes["command_id"],
-                cmd_node.attributes["deputy"],
+                cmd_node.attributes["host"],
                 cmd_node.attributes["exec"],
                 name_prefix + group_node.name,
                 auto_respawn,
@@ -1149,7 +1149,7 @@ class Sheriff:
                     cmd_node = sheriff_config.CommandNode()
                     cmd_node.attributes["exec"] = cmd._exec_str
                     cmd_node.attributes["command_id"] = cmd._command_id
-                    cmd_node.attributes["deputy"] = deputy._deputy_id
+                    cmd_node.attributes["host"] = deputy._deputy_id
                     if cmd._auto_respawn:
                         cmd_node.attributes["auto_respawn"] = "true"
 
