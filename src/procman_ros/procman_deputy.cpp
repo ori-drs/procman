@@ -18,6 +18,7 @@
 #include <map>
 #include <set>
 
+#include <ros/master.h>
 #include "procman_ros/procman_deputy.hpp"
 
 using procman_ros::ProcmanCmdDesired;
@@ -803,7 +804,7 @@ static void usage() {
       "  -v, --verbose     verbose output\n"
       "  -i, --id NAME   use deputy id NAME instead of hostname\n"
       "  -l, --log PATH    dump messages to PATH instead of stdout\n"
-      "  -u, --lcmurl URL  use specified LCM URL for procman messages\n"
+      "  -n, --no-roscore  If there is no roscore, don't start one. Otherwise automatically starts one.\n"
       "\n"
       "DEPUTY ID\n"
       "  The deputy id must be unique from other deputies.  On startup,\n"
@@ -822,11 +823,12 @@ using namespace procman;
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "procman_ros_deputy");
-  const char *optstring = "hvfl:i:u:";
+  const char *optstring = "hvfl:i:n";
   int c;
+  bool start_roscore;
   struct option long_opts[] = {
       {"help", no_argument, 0, 'h'},      {"verbose", no_argument, 0, 'v'},
-      {"log", required_argument, 0, 'l'}, {"lcmurl", required_argument, 0, 'u'},
+      {"log", required_argument, 0, 'l'}, {"no-roscore", no_argument, 0, 'n'},
       {"id", required_argument, 0, 'i'},  {0, 0, 0, 0}};
 
   DeputyOptions dep_options = DeputyOptions::Defaults();
@@ -842,8 +844,8 @@ int main(int argc, char **argv) {
       free(logfilename);
       logfilename = strdup(optarg);
       break;
-    case 'u':
-      dep_options.lcm_url = optarg;
+    case 'n':
+      start_roscore = false;
       break;
     case 'i':
       deputy_id_override = optarg;
@@ -891,6 +893,25 @@ int main(int argc, char **argv) {
   // set deputy hostname to the system hostname
   if (!deputy_id_override.empty()) {
     dep_options.deputy_id = deputy_id_override;
+  }
+
+  if (start_roscore && !ros::master::check()) {
+    pid_t pid = fork();
+    if (pid == 0) {
+      // child process changes its process group and then runs a roscore.
+      // Changing the process group is necessary so that it doesn't receive
+      // sigint from the terminal
+      setpgid(0, 0);
+      // redirect output so that it doesn't show on the terminal, and also
+      // background the process so that this child process of deputy exits
+      // immediately after spawning the roscore 
+      system("roscore > /dev/null 2>&1 &");
+      exit(0);
+    }
+    // parent process continues and runs the deputy, but the two processes are
+    // no longer connected. Sleep for a second or two to allow roscore to spin
+    // up
+    sleep(1);
   }
 
   ProcmanDeputy pmd(dep_options);

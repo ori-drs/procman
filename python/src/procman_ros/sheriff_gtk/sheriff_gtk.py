@@ -711,7 +711,9 @@ def main():
     )
     parser.add_argument(
         "--no-roscore",
-        action="store_true",
+        action="store_false",
+        dest="start_roscore",
+        default=True,
         help="By default, if there is no roscore running, the sheriff will start one. Use this flag to disable that "
         "behaviour.",
     )
@@ -725,11 +727,10 @@ def main():
         print(xcp)
         sys.exit(1)
 
-    if not args.no_roscore:
+    if args.start_roscore:
         # Check if roscore is running by looking for the /rosout topic
         try:
             import rostopic
-
             rostopic.get_topic_class("/rosout")
             roscore_running = True
         except rostopic.ROSTopicIOException as e:
