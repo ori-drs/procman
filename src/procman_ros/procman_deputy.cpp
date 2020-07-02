@@ -909,9 +909,10 @@ int main(int argc, char **argv) {
       exit(0);
     }
     // parent process continues and runs the deputy, but the two processes are
-    // no longer connected. Sleep for a second or two to allow roscore to spin
-    // up
-    sleep(1);
+    // no longer connected. Wait until core is started before continuing
+    while (!ros::master::check()) {
+      sleep(1);
+    }
   }
 
   ProcmanDeputy pmd(dep_options);
