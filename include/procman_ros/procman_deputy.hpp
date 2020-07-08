@@ -47,7 +47,7 @@ class ProcmanDeputy {
 
     void OnPosixSignal(int signum);
 
-    void OnProcessOutputAvailable(DeputyCommand* mi);
+    void OnProcessOutputAvailable(DeputyCommand* deputy_cmd);
 
     void UpdateCpuTimes();
 
@@ -55,11 +55,11 @@ class ProcmanDeputy {
 
     void TransmitProcessInfo();
 
-    void MaybeScheduleRespawn(DeputyCommand *mi);
+    void MaybeScheduleRespawn(DeputyCommand *deputy_cmd);
 
-    int StartCommand(DeputyCommand* mi, int desired_runid);
+    int StartCommand(DeputyCommand* deputy_cmd, int desired_runid);
 
-    int StopCommand(DeputyCommand* mi);
+    int StopCommand(DeputyCommand* deputy_cmd);
 
     void TransmitStr(const std::string& command_id, const char* str);
 
