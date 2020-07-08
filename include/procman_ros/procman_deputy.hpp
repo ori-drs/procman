@@ -77,7 +77,8 @@ class ProcmanDeputy {
 
     std::string deputy_id_;
 
-    SystemInfo cpu_time_[2];
+    SystemInfo current_system_status;
+    SystemInfo previous_system_status;
     float cpu_load_;
 
     int64_t deputy_start_time_;
