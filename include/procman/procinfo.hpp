@@ -43,6 +43,8 @@ struct SystemInfo {
   int64_t swapfree;
 };
 
+bool ReadProcessInfoWithChildren(int pid, ProcessInfo *procinfo);
+
 bool ReadProcessInfo(int pid, ProcessInfo *s);
 
 bool ReadSystemInfo(SystemInfo *s);

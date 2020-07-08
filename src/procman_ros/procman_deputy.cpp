@@ -450,15 +450,13 @@ void ProcmanDeputy::UpdateCpuTimes() {
     DeputyCommand *deputy_cmd = item.second;
 
     if (sheriff_cmd->Pid()) {
-      if (!ReadProcessInfo(sheriff_cmd->Pid(), &deputy_cmd->current_status)) {
+      if (!ReadProcessInfoWithChildren(sheriff_cmd->Pid(), &deputy_cmd->current_status)) {
         deputy_cmd->cpu_usage = 0;
         deputy_cmd->current_status.vsize = 0;
         deputy_cmd->current_status.rss = 0;
         perror("update_cpu_times - procinfo_read_proc_cpu_mem");
         // TODO handle this error
       } else {
-        std::vector<int> descendants = GetDescendants(sheriff_cmd->Pid());
-
         uint64_t used_jiffies = deputy_cmd->current_status.user -
                                 deputy_cmd->previous_status.user +
                                 deputy_cmd->current_status.system -
