@@ -161,8 +161,7 @@ void SocketMonitor::IterateOnce() {
     }
   }
   // Call callbacks for sockets that are ready
-  for (int index = 0; index < sockets_ready_.size(); ++index) {
-    SocketNotifier* notifier = sockets_ready_[index];
+  for (auto notifier : sockets_ready_) {
     if (!notifier) {
       continue;
     }
