@@ -37,7 +37,7 @@ static void strsplit(char *buf, char **words, int maxwords) {
       }
     }
   }
-  words[wordind] = NULL;
+  words[wordind] = nullptr;
 }
 
 struct PidInfo {
@@ -170,8 +170,8 @@ bool ReadProcessInfo(int pid, ProcessInfo *procinfo) {
 
   procinfo->user = atoi(words[13]);
   procinfo->system = atoi(words[14]);
-  procinfo->vsize = strtoll(words[22], NULL, 10);
-  procinfo->rss = strtoll(words[23], NULL, 10) * getpagesize();
+  procinfo->vsize = strtoll(words[22], nullptr, 10);
+  procinfo->rss = strtoll(words[23], nullptr, 10) * getpagesize();
 
   fclose(fp);
 

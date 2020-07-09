@@ -47,7 +47,7 @@ namespace procman {
 
 static int64_t timestamp_now() {
   struct timeval tv;
-  gettimeofday(&tv, NULL);
+  gettimeofday(&tv, nullptr);
   return (int64_t)tv.tv_sec * 1000000 + tv.tv_usec;
 }
 
@@ -837,12 +837,8 @@ static void usage() {
 using namespace procman;
 
 int main(int argc, char **argv) {
-<<<<<<< HEAD
   ros::init(argc, argv, "procman_ros_deputy");
   const char *optstring = "hvfl:i:np";
-=======
-  const char *optstring = "hvfl:i:n";
->>>>>>> master
   int c;
   bool start_roscore = true;
   bool persist_roscore = false;
@@ -853,10 +849,10 @@ int main(int argc, char **argv) {
       {nullptr, 0, nullptr, 0}};
 
   DeputyOptions dep_options = DeputyOptions::Defaults();
-  char *logfilename = NULL;
+  char *logfilename = nullptr;
   std::string deputy_id_override;
 
-  while ((c = getopt_long(argc, argv, optstring, long_opts, 0)) >= 0) {
+  while ((c = getopt_long(argc, argv, optstring, long_opts, nullptr)) >= 0) {
     switch (c) {
     case 'v':
       dep_options.verbose = true;
@@ -929,7 +925,6 @@ int main(int argc, char **argv) {
   if (start_roscore && !ros::master::check()) {
     pid_t pid = fork();
     if (pid == 0) {
-<<<<<<< HEAD
       // redirect output so that it doesn't show on the terminal  
       std::string roscore_cmd = "roscore > /dev/null 2>&1";
 
@@ -944,16 +939,6 @@ int main(int argc, char **argv) {
       }
 
       int ignored = system(roscore_cmd.c_str());
-=======
-      // child process changes its process group and then runs a roscore.
-      // Changing the process group is necessary so that it doesn't receive
-      // sigint from the terminal
-      setpgid(0, 0);
-      // redirect output so that it doesn't show on the terminal, and also
-      // background the process so that this child process of deputy exits
-      // immediately after spawning the roscore
-      int ret = system("roscore > /dev/null 2>&1 &");
->>>>>>> master
       exit(0);
     }
     // parent process continues and runs the deputy, but the two processes are

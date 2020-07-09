@@ -17,7 +17,7 @@ static int g_signal_fds[2] = { -1, -1 };
 
 static int64_t Now() {
     struct timeval tv;
-    gettimeofday (&tv, NULL);
+    gettimeofday (&tv, nullptr);
     return (int64_t) tv.tv_sec * 1000000 + tv.tv_usec;
 }
 

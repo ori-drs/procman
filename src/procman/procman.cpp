@@ -60,7 +60,7 @@ void Procman::StartCommand(ProcmanCommandPtr cmd) {
   const int stderr_backup = dup(STDERR_FILENO);
 
   int stdin_fd;
-  const int pid = forkpty(&stdin_fd, NULL, NULL, NULL);
+  const int pid = forkpty(&stdin_fd, nullptr, nullptr, nullptr);
   cmd->SetStdinFd(stdin_fd);
   if (0 == pid) {
     // set environment variables from the beginning of the command
@@ -188,7 +188,7 @@ void Procman::CleanupStoppedCommand(ProcmanCommandPtr cmd) {
 void ProcmanCommand::PrepareArgsAndEnvironment() {
   if (argv_) {
     Strfreev(argv_);
-    argv_ = NULL;
+    argv_ = nullptr;
   }
   environment_.clear();
 
