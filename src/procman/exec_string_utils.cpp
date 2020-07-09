@@ -1,6 +1,6 @@
 #include "procman/exec_string_utils.hpp"
 
-#include <string.h>
+#include <cstring>
 
 #include <sstream>
 

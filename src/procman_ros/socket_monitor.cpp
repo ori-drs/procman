@@ -1,10 +1,10 @@
 #include "procman_ros/socket_monitor.hpp"
 
-#include <ros/ros.h>
-#include <assert.h>
+#include <cassert>
+#include <csignal>
 #include <fcntl.h>
 #include <poll.h>
-#include <signal.h>
+#include <ros/ros.h>
 #include <sys/time.h>
 #include <unistd.h>
 
