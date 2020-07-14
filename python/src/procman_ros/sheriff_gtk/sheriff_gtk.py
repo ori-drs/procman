@@ -717,6 +717,13 @@ def main():
         help="By default, if there is no roscore running, the sheriff will start one. Use this flag to disable that "
         "behaviour.",
     )
+    parser.add_argument(
+        "--persist-roscore",
+        action="store_true",
+        default=False,
+        help="By default, the roscore started by the sheriff will be killed when sheriff exits. If you want the "
+        "roscore to continue running, use this option.",
+    )
 
     args = parser.parse_args(sys.argv[1:])
 
@@ -731,6 +738,7 @@ def main():
         # Check if roscore is running by looking for the /rosout topic
         try:
             import rostopic
+
             rostopic.get_topic_class("/rosout")
             roscore_running = True
         except rostopic.ROSTopicIOException as e:
@@ -740,14 +748,16 @@ def main():
             # Using os.setpgrp, the roscore subprocess becomes detached from the parent process group,
             # so it no longer receives sigint when we sent ctrl+c on the terminal to kill the sheriff
             devnull = open(os.devnull, "wb")
+            preexec = os.setpgrp if args.persist_roscore else None
             subprocess.Popen(
                 "roscore",
-                stdout=devnull,  # should be subprocess.DEVNULL in >3.3
+                stdout=devnull,  # TODO should be subprocess.DEVNULL in >3.3
                 stderr=devnull,
-                preexec_fn=os.setpgrp,
+                preexec_fn=preexec
             )
             # allow a bit of time to start the core so that we don't get a warning
             import time
+
             time.sleep(1)
 
     if args.observer:

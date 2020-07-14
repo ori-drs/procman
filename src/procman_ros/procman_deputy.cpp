@@ -817,6 +817,7 @@ static void usage() {
       "  -l, --log PATH    dump messages to PATH instead of stdout\n"
       "  -n, --no-roscore  If there is no roscore, don't start one. Otherwise "
       "automatically starts one.\n"
+      "  -p, --persist-roscore  If set, persist roscore after the deputy shuts down, if one is started"
       "\n"
       "DEPUTY ID\n"
       "  The deputy id must be unique from other deputies.  On startup,\n"
@@ -835,13 +836,15 @@ using namespace procman;
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "procman_ros_deputy");
-  const char *optstring = "hvfl:i:n";
+  const char *optstring = "hvfl:i:np";
   int c;
-  bool start_roscore;
+  bool start_roscore = true;
+  bool persist_roscore = false;
   struct option long_opts[] = {
-      {"help", no_argument, 0, 'h'},      {"verbose", no_argument, 0, 'v'},
-      {"log", required_argument, 0, 'l'}, {"no-roscore", no_argument, 0, 'n'},
-      {"id", required_argument, 0, 'i'},  {0, 0, 0, 0}};
+      {"help", no_argument, nullptr, 'h'},      {"verbose", no_argument, nullptr, 'v'},
+      {"log", required_argument, nullptr, 'l'}, {"no-roscore", no_argument, nullptr, 'n'},
+      {"id", required_argument, nullptr, 'i'}, {"persist-roscore", no_argument, nullptr, 'p'},
+      {nullptr, 0, nullptr, 0}};
 
   DeputyOptions dep_options = DeputyOptions::Defaults();
   char *logfilename = NULL;
@@ -858,6 +861,9 @@ int main(int argc, char **argv) {
       break;
     case 'n':
       start_roscore = false;
+      break;
+    case 'p':
+      persist_roscore = true;
       break;
     case 'i':
       deputy_id_override = optarg;
@@ -910,14 +916,20 @@ int main(int argc, char **argv) {
   if (start_roscore && !ros::master::check()) {
     pid_t pid = fork();
     if (pid == 0) {
-      // child process changes its process group and then runs a roscore.
-      // Changing the process group is necessary so that it doesn't receive
-      // sigint from the terminal
-      setpgid(0, 0);
-      // redirect output so that it doesn't show on the terminal, and also
-      // background the process so that this child process of deputy exits
-      // immediately after spawning the roscore
-      system("roscore > /dev/null 2>&1 &");
+      // redirect output so that it doesn't show on the terminal  
+      std::string roscore_cmd = "roscore > /dev/null 2>&1";
+
+      // If we want to persist the roscore, the child process changes its
+      // process group and then runs a roscore. Changing the process group is
+      // necessary so that it doesn't receive sigint from the terminal
+      if (persist_roscore) {
+        setpgid(0, 0);
+        // background the process so that this child process of deputy exits
+        // immediately after spawning the roscore
+        roscore_cmd += " &";
+      }
+
+      int ignored = system(roscore_cmd.c_str());
       exit(0);
     }
     // parent process continues and runs the deputy, but the two processes are
