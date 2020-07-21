@@ -753,7 +753,7 @@ def main():
                 "roscore",
                 stdout=devnull,  # TODO should be subprocess.DEVNULL in >3.3
                 stderr=devnull,
-                preexec_fn=preexec
+                preexec_fn=preexec,
             )
             # allow a bit of time to start the core so that we don't get a warning
             import time
@@ -806,7 +806,7 @@ def main():
             gtk.main()
         except KeyboardInterrupt:
             print("Exiting")
-        gui.cleanup(True)
+            gui.cleanup(True)
     else:
         if not args.script:
             print("No script specified and running in headless mode.  Exiting")
