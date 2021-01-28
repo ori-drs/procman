@@ -107,15 +107,17 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions &options)
   // it will give a false start time if roscore is not running
   deputy_start_time_ = timestamp_now();
   pm_ = new Procman();
-  info_sub_ = nh_.subscribe("pm_info", 1, &ProcmanDeputy::InfoReceived, this);
+  // Queue sizes are important because messages are not immediately processed -
+  // if queue size is very small some deputies will never receive orders
+  info_sub_ = nh_.subscribe("pm_info", 10, &ProcmanDeputy::InfoReceived, this);
   discovery_sub_ =
-      nh_.subscribe("pm_discover", 1, &ProcmanDeputy::DiscoveryReceived, this);
+      nh_.subscribe("pm_discover", 10, &ProcmanDeputy::DiscoveryReceived, this);
   info_pub_ = nh_.advertise<procman_ros::ProcmanDeputyInfo>("pm_info", 10);
   discover_pub_ =
       nh_.advertise<procman_ros::ProcmanDiscovery>("pm_discover", 10);
-  output_pub_ = nh_.advertise<procman_ros::ProcmanOutput>("pm_output", 10);
+  output_pub_ = nh_.advertise<procman_ros::ProcmanOutput>("pm_output", 100);
   orders_sub_ =
-      nh_.subscribe("pm_orders", 1, &ProcmanDeputy::OrdersReceived, this);
+      nh_.subscribe("pm_orders", 10, &ProcmanDeputy::OrdersReceived, this);
   // Setup timers
 
   // must create this before calling onDiscoveryTimer, otherwise it can be
