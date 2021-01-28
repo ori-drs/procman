@@ -58,6 +58,14 @@ in your workspace
 Currently only tested on GNU/Linux.  Some stuff will definitely only work on
 Linux (e.g., the process memory, CPU statistics).
 
+### Debugging
+
+To view debug output, start deputies with
+
+```
+ROSCONSOLE_CONFIG_FILE=`rospack find procman_ros`/config/rosconsole/debug.config rosrun procman_ros deputy -i localhost -v
+```
+
 ### Documentation
 
 Documentation is built with Doxygen.
