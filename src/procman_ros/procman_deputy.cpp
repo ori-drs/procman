@@ -918,7 +918,7 @@ int main(int argc, char **argv) {
       // redirect output so that it doesn't show on the terminal, and also
       // background the process so that this child process of deputy exits
       // immediately after spawning the roscore
-      system("roscore > /dev/null 2>&1 &");
+      int ret = system("roscore > /dev/null 2>&1 &");
       exit(0);
     }
     // parent process continues and runs the deputy, but the two processes are
