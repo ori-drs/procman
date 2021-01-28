@@ -18,7 +18,7 @@ One workstation runs a "sheriff" process, which provides a GUI to command and
 communicate with the deputies:
 
 ```
-rosrun procman_ros sheriff
+rosrun procman_ros sheriff procman_config.pmd
 ```
 
 Using the GUI, you can:

@@ -834,7 +834,6 @@ static void usage() {
 using namespace procman;
 
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "procman_ros_deputy");
   const char *optstring = "hvfl:i:n";
   int c;
   bool start_roscore;
@@ -906,6 +905,8 @@ int main(int argc, char **argv) {
   if (!deputy_id_override.empty()) {
     dep_options.deputy_id = deputy_id_override;
   }
+
+  ros::init(argc, argv, "procman_ros_deputy_" + dep_options.deputy_id);
 
   if (start_roscore && !ros::master::check()) {
     pid_t pid = fork();
