@@ -906,7 +906,12 @@ int main(int argc, char **argv) {
     dep_options.deputy_id = deputy_id_override;
   }
 
-  ros::init(argc, argv, "procman_ros_deputy_" + dep_options.deputy_id);
+  try {
+    ros::init(argc, argv, "procman_ros_deputy_" + dep_options.deputy_id);
+  } catch (ros::InvalidNameException e) {
+    ros::init(argc, argv, "procman_ros_deputy", ros::init_options::AnonymousName);
+    ROS_WARN("Deputy name %s is not valid as a node name. Node will be anonymised.", dep_options.deputy_id.c_str());
+  }
 
   if (start_roscore && !ros::master::check()) {
     pid_t pid = fork();
