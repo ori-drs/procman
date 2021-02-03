@@ -18,7 +18,7 @@ One workstation runs a "sheriff" process, which provides a GUI to command and
 communicate with the deputies:
 
 ```
-rosrun procman_ros sheriff
+rosrun procman_ros sheriff procman_config.pmd
 ```
 
 Using the GUI, you can:
@@ -57,6 +57,14 @@ in your workspace
 
 Currently only tested on GNU/Linux.  Some stuff will definitely only work on
 Linux (e.g., the process memory, CPU statistics).
+
+### Debugging
+
+To view debug output, start deputies with
+
+```
+ROSCONSOLE_CONFIG_FILE=`rospack find procman_ros`/config/rosconsole/debug.config rosrun procman_ros deputy -i localhost -v
+```
 
 ### Documentation
 

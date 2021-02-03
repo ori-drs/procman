@@ -107,15 +107,17 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions &options)
   // it will give a false start time if roscore is not running
   deputy_start_time_ = timestamp_now();
   pm_ = new Procman();
-  info_sub_ = nh_.subscribe("pm_info", 1, &ProcmanDeputy::InfoReceived, this);
+  // Queue sizes are important because messages are not immediately processed -
+  // if queue size is very small some deputies will never receive orders
+  info_sub_ = nh_.subscribe("pm_info", 10, &ProcmanDeputy::InfoReceived, this);
   discovery_sub_ =
-      nh_.subscribe("pm_discover", 1, &ProcmanDeputy::DiscoveryReceived, this);
+      nh_.subscribe("pm_discover", 10, &ProcmanDeputy::DiscoveryReceived, this);
   info_pub_ = nh_.advertise<procman_ros::ProcmanDeputyInfo>("pm_info", 10);
   discover_pub_ =
       nh_.advertise<procman_ros::ProcmanDiscovery>("pm_discover", 10);
-  output_pub_ = nh_.advertise<procman_ros::ProcmanOutput>("pm_output", 10);
+  output_pub_ = nh_.advertise<procman_ros::ProcmanOutput>("pm_output", 100);
   orders_sub_ =
-      nh_.subscribe("pm_orders", 1, &ProcmanDeputy::OrdersReceived, this);
+      nh_.subscribe("pm_orders", 10, &ProcmanDeputy::OrdersReceived, this);
   // Setup timers
 
   // must create this before calling onDiscoveryTimer, otherwise it can be
@@ -835,8 +837,12 @@ static void usage() {
 using namespace procman;
 
 int main(int argc, char **argv) {
+<<<<<<< HEAD
   ros::init(argc, argv, "procman_ros_deputy");
   const char *optstring = "hvfl:i:np";
+=======
+  const char *optstring = "hvfl:i:n";
+>>>>>>> master
   int c;
   bool start_roscore = true;
   bool persist_roscore = false;
@@ -913,9 +919,17 @@ int main(int argc, char **argv) {
     dep_options.deputy_id = deputy_id_override;
   }
 
+  try {
+    ros::init(argc, argv, "procman_ros_deputy_" + dep_options.deputy_id);
+  } catch (ros::InvalidNameException e) {
+    ros::init(argc, argv, "procman_ros_deputy", ros::init_options::AnonymousName);
+    ROS_WARN("Deputy name %s is not valid as a node name. Node will be anonymised.", dep_options.deputy_id.c_str());
+  }
+
   if (start_roscore && !ros::master::check()) {
     pid_t pid = fork();
     if (pid == 0) {
+<<<<<<< HEAD
       // redirect output so that it doesn't show on the terminal  
       std::string roscore_cmd = "roscore > /dev/null 2>&1";
 
@@ -930,6 +944,16 @@ int main(int argc, char **argv) {
       }
 
       int ignored = system(roscore_cmd.c_str());
+=======
+      // child process changes its process group and then runs a roscore.
+      // Changing the process group is necessary so that it doesn't receive
+      // sigint from the terminal
+      setpgid(0, 0);
+      // redirect output so that it doesn't show on the terminal, and also
+      // background the process so that this child process of deputy exits
+      // immediately after spawning the roscore
+      int ret = system("roscore > /dev/null 2>&1 &");
+>>>>>>> master
       exit(0);
     }
     // parent process continues and runs the deputy, but the two processes are

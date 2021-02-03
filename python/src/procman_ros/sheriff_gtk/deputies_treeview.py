@@ -38,7 +38,7 @@ class DeputyModel(gtk.ListStore):
                     DeputyModel.COL_LAST_UPDATE,
                     _deputy_last_update_str(deputy),
                     DeputyModel.COL_LOAD,
-                    "{}".format(deputy.cpu_load),
+                    "{:.4f}".format(deputy.cpu_load),
                 )
                 to_update.remove(deputy)
             else:
