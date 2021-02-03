@@ -280,34 +280,34 @@ int ProcmanDeputy::StartCommand(DeputyCommand *deputy_cmd, int desired_runid) {
   return 0;
 }
 
-int ProcmanDeputy::StopCommand(DeputyCommand *mi) {
-  ProcmanCommandPtr cmd = mi->cmd;
+int ProcmanDeputy::StopCommand(DeputyCommand *deputy_cmd) {
+  ProcmanCommandPtr cmd = deputy_cmd->cmd;
 
   if (!cmd->Pid()) {
     return 0;
   }
 
-  mi->should_be_running = false;
-  mi->respawn_timer.stop();
+  deputy_cmd->should_be_running = false;
+  deputy_cmd->respawn_timer.stop();
 
   int64_t now = timestamp_now();
   int64_t sigkill_time =
-      mi->first_kill_time + (int64_t)(mi->stop_time_allowed * 1000000);
+      deputy_cmd->first_kill_time + (int64_t)(deputy_cmd->stop_time_allowed * 1000000);
   bool okay;
-  if (!mi->first_kill_time) {
-    ROS_DEBUG("[%s] stop (signal %d)\n", mi->cmd_id.c_str(), mi->stop_signal);
-    okay = pm_->KillCommand(cmd, mi->stop_signal);
-    mi->first_kill_time = now;
-    mi->num_kills_sent++;
+  if (!deputy_cmd->first_kill_time) {
+    ROS_DEBUG("[%s] stop (signal %d)\n", deputy_cmd->cmd_id.c_str(), deputy_cmd->stop_signal);
+    okay = pm_->KillCommand(cmd, deputy_cmd->stop_signal);
+    deputy_cmd->first_kill_time = now;
+    deputy_cmd->num_kills_sent++;
   } else if (now > sigkill_time) {
-    ROS_DEBUG("[%s] stop (signal %d)\n", mi->cmd_id.c_str(), SIGKILL);
+    ROS_DEBUG("[%s] stop (signal %d)\n", deputy_cmd->cmd_id.c_str(), SIGKILL);
     okay = pm_->KillCommand(cmd, SIGKILL);
   } else {
     return 0;
   }
 
   if (!okay) {
-    PrintfAndTransmit(mi->cmd_id, "failed to send kill signal to command\n");
+    PrintfAndTransmit(deputy_cmd->cmd_id, "failed to send kill signal to command\n");
     return 1;
   }
   return 0;
@@ -317,14 +317,14 @@ void ProcmanDeputy::CheckForStoppedCommands() {
   ProcmanCommandPtr cmd = pm_->CheckForStoppedCommands();
 
   while (cmd) {
-    DeputyCommand *mi = commands_[cmd];
+    DeputyCommand *deputy_cmd = commands_[cmd];
 
     // check the stdout pipes to see if there is anything from stdout /
     // stderr.
     struct pollfd pfd = {cmd->StdoutFd(), POLLIN, 0};
     const int poll_status = poll(&pfd, 1, 0);
     if (pfd.revents & POLLIN) {
-      OnProcessOutputAvailable(mi);
+      OnProcessOutputAvailable(deputy_cmd);
     }
 
     // did the child terminate with a signal?
@@ -332,38 +332,38 @@ void ProcmanDeputy::CheckForStoppedCommands() {
 
     if (WIFSIGNALED(exit_status)) {
       const int signum = WTERMSIG(exit_status);
-      ROS_DEBUG("[%s] terminated by signal %d (%s)\n", mi->cmd_id.c_str(),
+      ROS_DEBUG("[%s] terminated by signal %d (%s)\n", deputy_cmd->cmd_id.c_str(),
                 signum, strsignal(signum));
     } else if (exit_status != 0) {
-      ROS_DEBUG("[%s] exited with status %d\n", mi->cmd_id.c_str(),
+      ROS_DEBUG("[%s] exited with status %d\n", deputy_cmd->cmd_id.c_str(),
                 WEXITSTATUS(exit_status));
     } else {
-      ROS_DEBUG("[%s] exited\n", mi->cmd_id.c_str());
+      ROS_DEBUG("[%s] exited\n", deputy_cmd->cmd_id.c_str());
     }
 
     if (WIFSIGNALED(exit_status)) {
       int signum = WTERMSIG(exit_status);
 
-      PrintfAndTransmit(mi->cmd_id, "%s\n", strsignal(signum), signum);
+      PrintfAndTransmit(deputy_cmd->cmd_id, "%s\n", strsignal(signum), signum);
       if (WCOREDUMP(exit_status)) {
-        PrintfAndTransmit(mi->cmd_id, "Core dumped.\n");
+        PrintfAndTransmit(deputy_cmd->cmd_id, "Core dumped.\n");
       }
     }
 
-    if (mi->stdout_notifier) {
-      mi->stdout_notifier.reset();
+    if (deputy_cmd->stdout_notifier) {
+      deputy_cmd->stdout_notifier.reset();
       pm_->CleanupStoppedCommand(cmd);
     }
 
     // remove ?
-    if (mi->remove_requested) {
-      ROS_DEBUG("[%s] remove\n", mi->cmd_id.c_str());
+    if (deputy_cmd->remove_requested) {
+      ROS_DEBUG("[%s] remove\n", deputy_cmd->cmd_id.c_str());
       // cleanup the private data structure used
       commands_.erase(cmd);
       pm_->RemoveCommand(cmd);
-      delete mi;
+      delete deputy_cmd;
     } else {
-      MaybeScheduleRespawn(mi);
+      MaybeScheduleRespawn(deputy_cmd);
     }
 
     cmd = pm_->CheckForStoppedCommands();
@@ -373,15 +373,15 @@ void ProcmanDeputy::CheckForStoppedCommands() {
 
 void ProcmanDeputy::OnQuitTimer(const ros::WallTimerEvent &event) {
   for (auto &item : commands_) {
-    DeputyCommand *mi = item.second;
+    DeputyCommand *deputy_cmd = item.second;
     ProcmanCommandPtr cmd = item.first;
     if (cmd->Pid()) {
-      ROS_DEBUG("[%s] stop (signal %d)\n", mi->cmd_id.c_str(), SIGKILL);
+      ROS_DEBUG("[%s] stop (signal %d)\n", deputy_cmd->cmd_id.c_str(), SIGKILL);
       pm_->KillCommand(cmd, SIGKILL);
     }
     commands_.erase(cmd);
     pm_->RemoveCommand(cmd);
-    delete mi;
+    delete deputy_cmd;
   }
 }
 
@@ -402,20 +402,20 @@ void ProcmanDeputy::TransmitProcessInfo() {
   int cmd_index = 0;
   for (auto &item : commands_) {
     ProcmanCommandPtr cmd = item.first;
-    DeputyCommand *mi = item.second;
+    DeputyCommand *deputy_cmd = item.second;
 
     msg.cmds[cmd_index].cmd.exec_str = cmd->ExecStr();
-    msg.cmds[cmd_index].cmd.command_id = mi->cmd_id;
-    msg.cmds[cmd_index].cmd.group = mi->group;
-    msg.cmds[cmd_index].cmd.auto_respawn = mi->auto_respawn;
-    msg.cmds[cmd_index].cmd.stop_signal = mi->stop_signal;
-    msg.cmds[cmd_index].cmd.stop_time_allowed = mi->stop_time_allowed;
-    msg.cmds[cmd_index].actual_runid = mi->actual_runid;
+    msg.cmds[cmd_index].cmd.command_id = deputy_cmd->cmd_id;
+    msg.cmds[cmd_index].cmd.group = deputy_cmd->group;
+    msg.cmds[cmd_index].cmd.auto_respawn = deputy_cmd->auto_respawn;
+    msg.cmds[cmd_index].cmd.stop_signal = deputy_cmd->stop_signal;
+    msg.cmds[cmd_index].cmd.stop_time_allowed = deputy_cmd->stop_time_allowed;
+    msg.cmds[cmd_index].actual_runid = deputy_cmd->actual_runid;
     msg.cmds[cmd_index].pid = cmd->Pid();
     msg.cmds[cmd_index].exit_code = cmd->ExitStatus();
-    msg.cmds[cmd_index].cpu_usage = mi->cpu_usage;
-    msg.cmds[cmd_index].mem_vsize_bytes = mi->current_status.vsize;
-    msg.cmds[cmd_index].mem_rss_bytes = mi->current_status.rss;
+    msg.cmds[cmd_index].cpu_usage = deputy_cmd->cpu_usage;
+    msg.cmds[cmd_index].mem_vsize_bytes = deputy_cmd->current_status.vsize;
+    msg.cmds[cmd_index].mem_rss_bytes = deputy_cmd->current_status.rss;
     cmd_index++;
   }
 
@@ -711,32 +711,32 @@ void ProcmanDeputy::OrdersReceived(
   // orders, then stop and remove those commands
   std::vector<DeputyCommand *> toremove;
   for (auto &item : commands_) {
-    DeputyCommand *mi = item.second;
+    DeputyCommand *deputy_cmd = item.second;
     ProcmanCommandPtr cmd = item.first;
-    const ProcmanCmdDesired *cmd_msg = OrdersFindCmd(orders, mi->cmd_id);
+    const ProcmanCmdDesired *cmd_msg = OrdersFindCmd(orders, deputy_cmd->cmd_id);
 
     if (!cmd_msg) {
       // push the orphaned command into a list first.  remove later, to
       // avoid corrupting the linked list (since this is a borrowed data
       // structure)
-      toremove.push_back(mi);
+      toremove.push_back(deputy_cmd);
     }
   }
 
   // cull orphaned commands
-  for (DeputyCommand *mi : toremove) {
-    ProcmanCommandPtr cmd = mi->cmd;
+  for (DeputyCommand *deputy_cmd : toremove) {
+    ProcmanCommandPtr cmd = deputy_cmd->cmd;
 
     if (cmd->Pid()) {
-      ROS_DEBUG("[%s] scheduling removal\n", mi->cmd_id.c_str());
-      mi->remove_requested = 1;
-      StopCommand(mi);
+      ROS_DEBUG("[%s] scheduling removal\n", deputy_cmd->cmd_id.c_str());
+      deputy_cmd->remove_requested = 1;
+      StopCommand(deputy_cmd);
     } else {
-      ROS_DEBUG("[%s] remove\n", mi->cmd_id.c_str());
+      ROS_DEBUG("[%s] remove\n", deputy_cmd->cmd_id.c_str());
       // cleanup the private data structure used
       commands_.erase(cmd);
       pm_->RemoveCommand(cmd);
-      delete mi;
+      delete deputy_cmd;
     }
 
     action_taken = 1;
