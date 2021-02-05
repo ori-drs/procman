@@ -806,7 +806,7 @@ def main():
             gtk.main()
         except KeyboardInterrupt:
             print("Exiting")
-            gui.cleanup(True)
+        gui.cleanup(True)
     else:
         if not args.script:
             print("No script specified and running in headless mode.  Exiting")
