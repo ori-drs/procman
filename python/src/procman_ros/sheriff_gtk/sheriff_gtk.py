@@ -779,7 +779,13 @@ def main():
         if args.spawn_deputy:
             gui.on_spawn_deputy_mi_activate()
         if cfg:
-            gui.load_config(cfg)
+            try:
+                gui.load_config(cfg)
+            except ValueError as e:
+                print("Error while loading config: {}".format(e))
+                gui.cleanup(False)
+                sys.exit(1)
+
             gui.load_save_dir = os.path.dirname(args.procman_config_file)
 
         if args.script:
