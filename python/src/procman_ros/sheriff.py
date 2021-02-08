@@ -768,13 +768,13 @@ class Sheriff:
             raise ValueError("Can't add commands in Observer mode")
 
         if not exec_str:
-            raise ValueError("Invalid command")
+            raise ValueError("Invalid command {}".format(exec_str))
         if not command_id:
-            raise ValueError("Invalid command id")
+            raise ValueError("Invalid command id {}".format(command_id))
         if self._get_command(command_id):
             raise ValueError("Duplicate command id {}".format(command_id))
         if not deputy_id:
-            raise ValueError("Invalid deputy")
+            raise ValueError("Invalid deputy {}".format(deputy_id))
 
         dep = self._get_or_make_deputy(deputy_id)
         newcmd = Command(self._lock)
@@ -1099,16 +1099,18 @@ class Sheriff:
                 stop_signal = DEFAULT_STOP_SIGNAL
             if stop_time_allowed == 0:
                 stop_time_allowed = DEFAULT_STOP_TIME_ALLOWED
-
-            self._add_command(
-                cmd_node.attributes["command_id"],
-                cmd_node.attributes["host"],
-                cmd_node.attributes["exec"],
-                name_prefix + group_node.name,
-                auto_respawn,
-                stop_signal,
-                stop_time_allowed,
-            )
+            try:
+                self._add_command(
+                    cmd_node.attributes["command_id"],
+                    cmd_node.attributes["host"],
+                    cmd_node.attributes["exec"],
+                    name_prefix + group_node.name,
+                    auto_respawn,
+                    stop_signal,
+                    stop_time_allowed,
+                )
+            except ValueError as e:
+                rospy.logwarn(e.message)
 
         for subgroup in list(group_node.subgroups.values()):
             if group_node.name:
