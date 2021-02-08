@@ -710,12 +710,11 @@ def main():
         "observer mode.",
     )
     parser.add_argument(
-        "--no-roscore",
-        action="store_false",
-        dest="start_roscore",
-        default=True,
-        help="By default, if there is no roscore running, the sheriff will start one. Use this flag to disable that "
-        "behaviour.",
+        "--start-roscore",
+        action="store_true",
+        default=False,
+        help="By default, sheriff will wait for a roscore to become available before doing anything. If this argument "
+             "is passed, sheriff will start a roscore itself.",
     )
     parser.add_argument(
         "--persist-roscore",

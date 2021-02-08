@@ -817,9 +817,8 @@ static void usage() {
       "  -v, --verbose     verbose output\n"
       "  -i, --id NAME   use deputy id NAME instead of hostname\n"
       "  -l, --log PATH    dump messages to PATH instead of stdout\n"
-      "  -n, --no-roscore  If there is no roscore, don't start one. Otherwise "
-      "automatically starts one.\n"
-      "  -p, --persist-roscore  If set, persist roscore after the deputy shuts down, if one is started"
+      "  -s, --start-roscore  If there is no roscore, start one\n"
+      "  -p, --persist-roscore  If set, persist roscore after the deputy shuts down, if it started one"
       "\n"
       "DEPUTY ID\n"
       "  The deputy id must be unique from other deputies.  On startup,\n"
@@ -837,13 +836,13 @@ static void usage() {
 using namespace procman;
 
 int main(int argc, char **argv) {
-  const char *optstring = "hvfl:i:np";
+  const char *optstring = "hvfl:i:sp";
   int c;
-  bool start_roscore = true;
+  bool start_roscore = false;
   bool persist_roscore = false;
   struct option long_opts[] = {
       {"help", no_argument, nullptr, 'h'},      {"verbose", no_argument, nullptr, 'v'},
-      {"log", required_argument, nullptr, 'l'}, {"no-roscore", no_argument, nullptr, 'n'},
+      {"log", required_argument, nullptr, 'l'}, {"start-roscore", no_argument, nullptr, 's'},
       {"id", required_argument, nullptr, 'i'}, {"persist-roscore", no_argument, nullptr, 'p'},
       {nullptr, 0, nullptr, 0}};
 
@@ -860,8 +859,8 @@ int main(int argc, char **argv) {
       free(logfilename);
       logfilename = strdup(optarg);
       break;
-    case 'n':
-      start_roscore = false;
+    case 's':
+      start_roscore = true;
       break;
     case 'p':
       persist_roscore = true;
