@@ -5,7 +5,6 @@ import subprocess
 import sys
 import time
 
-from lcm import LCM
 from procman_ros.sheriff_script import ScriptManager, ScriptListener
 from procman_ros.sheriff import Sheriff
 import procman_ros.sheriff as sheriff

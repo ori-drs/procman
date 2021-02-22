@@ -10,7 +10,6 @@ import signal
 import threading
 import rospy
 
-import lcm
 from procman_ros.msg import ProcmanCmd
 from procman_ros.msg import ProcmanDeputyInfo
 from procman_ros.msg import ProcmanOrders
