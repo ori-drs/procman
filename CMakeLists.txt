@@ -55,3 +55,6 @@ add_dependencies(deputy ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TA
 install(DIRECTORY include/${PROJECT_NAME}/
    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
    FILES_MATCHING PATTERN "*.hpp")
+
+catkin_install_python(PROGRAMS scripts/sheriff
+                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
