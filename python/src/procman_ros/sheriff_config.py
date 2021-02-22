@@ -587,5 +587,5 @@ if __name__ == "__main__":
         print("usage: sheriff_config.py <fname>")
         sys.exit(1)
 
-    config = Parser().parse(file(fname))
+    config = Parser().parse(open(fname))
     print(config)

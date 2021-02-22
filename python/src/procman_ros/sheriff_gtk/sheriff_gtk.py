@@ -550,7 +550,7 @@ class SheriffGtk(SheriffListener):
             self.config_filename = self.load_dlg.get_filename()
             self.load_save_dir = os.path.dirname(self.config_filename)
             try:
-                cfg = sheriff.load_config_file(file(self.config_filename))
+                cfg = sheriff.load_config_file(open(self.config_filename))
             except Exception:
                 msgdlg = Gtk.MessageDialog(
                     self.window,
@@ -591,7 +591,7 @@ class SheriffGtk(SheriffListener):
             self.sheriff.save_config(cfg_node)
             self.script_manager.save_config(cfg_node)
             try:
-                file(self.config_filename, "w").write(str(cfg_node))
+                open(self.config_filename, "w").write(str(cfg_node))
             except OSError as e:
                 msgdlg = Gtk.MessageDialog(
                     self.window,
@@ -727,7 +727,7 @@ def main():
     args = parser.parse_args(sys.argv[1:])
 
     try:
-        cfg = sheriff.load_config_file(file(args.procman_config_file))
+        cfg = sheriff.load_config_file(open(args.procman_config_file))
     except Exception as xcp:
         print("Unable to load config file.")
         print(xcp)
