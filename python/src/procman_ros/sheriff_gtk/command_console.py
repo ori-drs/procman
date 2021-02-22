@@ -143,12 +143,16 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
                 self._add_text_to_buffer(
                     extradata.tb,
                     now_str()
-                    + "\nSHERIFF RATE LIMIT: Ignored {} bytes of output\n".format(extradata.printf_drop_count),
+                    + "\nSHERIFF RATE LIMIT: Ignored {} bytes of output\n".format(
+                        extradata.printf_drop_count
+                    ),
                 )
                 self._add_text_to_buffer(
                     self.sheriff_tb,
                     now_str()
-                    + "Ignored {} bytes of output from [{}] [{}]\n".format(extradata.printf_drop_count, deputy.deputy_id, cmd.command_id),
+                    + "Ignored {} bytes of output from [{}] [{}]\n".format(
+                        extradata.printf_drop_count, deputy.deputy_id, cmd.command_id
+                    ),
                 )
 
             extradata.printf_keep_count.pop(0)
@@ -275,9 +279,7 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
             self.set_output_rate_limit(save_map["console_rate_limit"])
 
         if "console_background_color" in save_map:
-            self.set_background_color(
-                Gdk.Color(save_map["console_background_color"])
-            )
+            self.set_background_color(Gdk.Color(save_map["console_background_color"]))
 
         if "console_text_color" in save_map:
             self.set_text_color(Gdk.Color(save_map["console_text_color"]))

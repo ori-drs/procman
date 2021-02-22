@@ -33,11 +33,7 @@ class ParseError(ValueError):
 line {} col {} {}
 {}
 """.format(
-            self.msg,
-            self.lineno,
-            self.offset,
-            tokenstr,
-            self.text,
+            self.msg, self.lineno, self.offset, tokenstr, self.text
         )
         s += " " * (self.offset - ntabs - 1) + "\t" * ntabs + "^"
         return s
@@ -292,9 +288,7 @@ class WaitStatusActionNode:
 
     def __str__(self):
         return 'wait {} "{}" status "{}";'.format(
-            self.ident_type,
-            escape_str(self.ident),
-            self.wait_status,
+            self.ident_type, escape_str(self.ident), self.wait_status
         )
 
 

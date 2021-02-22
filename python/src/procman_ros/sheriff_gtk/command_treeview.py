@@ -53,7 +53,9 @@ class SheriffCommandTreeView(Gtk.TreeView):
         cmds_sel.set_mode(Gtk.SelectionMode.MULTIPLE)
 
         self.add_events(
-            Gdk.EventMask.KEY_PRESS_MASK | Gdk.EventType.BUTTON_PRESS | Gdk._2BUTTON_PRESS
+            Gdk.EventMask.KEY_PRESS_MASK
+            | Gdk.EventType.BUTTON_PRESS
+            | Gdk._2BUTTON_PRESS
         )
         self.connect("key-press-event", self._on_cmds_tv_key_press_event)
         self.connect("button-press-event", self._on_cmds_tv_button_press_event)

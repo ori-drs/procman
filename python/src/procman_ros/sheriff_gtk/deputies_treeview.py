@@ -26,7 +26,9 @@ class DeputyModel(Gtk.ListStore):
         def _deputy_last_update_str(dep):
             if dep.last_update_utime:
                 now_utime = time.time() * 1000000
-                return "{:.1f} seconds ago".format((now_utime - dep.last_update_utime) * 1e-6)
+                return "{:.1f} seconds ago".format(
+                    (now_utime - dep.last_update_utime) * 1e-6
+                )
             else:
                 return "<never>"
 

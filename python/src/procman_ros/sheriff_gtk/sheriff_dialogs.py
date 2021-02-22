@@ -31,7 +31,12 @@ class AddModifyCommandDialog(Gtk.Dialog):
             "Add/Modify Command",
             parent,
             Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-            (Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT, Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT),
+            (
+                Gtk.STOCK_OK,
+                Gtk.ResponseType.ACCEPT,
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.REJECT,
+            ),
         )
         table = Gtk.Table(7, 2)
 
@@ -60,7 +65,9 @@ class AddModifyCommandDialog(Gtk.Dialog):
         self.cmd_id_te.set_text(initial_cmd_id)
         self.cmd_id_te.set_width_chars(60)
         table.attach(self.cmd_id_te, 1, 2, 1, 2)
-        self.cmd_id_te.connect("activate", lambda e: self.response(Gtk.ResponseType.ACCEPT))
+        self.cmd_id_te.connect(
+            "activate", lambda e: self.response(Gtk.ResponseType.ACCEPT)
+        )
         if not is_add:
             self.cmd_id_te.set_sensitive(False)
 
@@ -70,7 +77,9 @@ class AddModifyCommandDialog(Gtk.Dialog):
         self.name_te.set_text(initial_cmd)
         self.name_te.set_width_chars(60)
         table.attach(self.name_te, 1, 2, 2, 3)
-        self.name_te.connect("activate", lambda e: self.response(Gtk.ResponseType.ACCEPT))
+        self.name_te.connect(
+            "activate", lambda e: self.response(Gtk.ResponseType.ACCEPT)
+        )
         self.name_te.grab_focus()
 
         # group
@@ -177,7 +186,12 @@ class PreferencesDialog(Gtk.Dialog):
             "Preferences",
             parent,
             Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-            (Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT, Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT),
+            (
+                Gtk.STOCK_OK,
+                Gtk.ResponseType.ACCEPT,
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.REJECT,
+            ),
         )
         table = Gtk.Table(4, 2)
 
@@ -279,7 +293,12 @@ class AddModifyScriptDialog(Gtk.Dialog):
             title,
             parent,
             Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-            (Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT, Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT),
+            (
+                Gtk.STOCK_OK,
+                Gtk.ResponseType.ACCEPT,
+                Gtk.STOCK_CANCEL,
+                Gtk.ResponseType.REJECT,
+            ),
         )
 
         self.set_default_size(800, 400)
@@ -386,7 +405,9 @@ def do_add_script_dialog(script_manager, window):
             dlg.script_tv.grab_focus()
             continue
         if script_manager.get_script(script.name) is not None:
-            _do_err_dialog(window, "A script named {} already exists!".format(script.name))
+            _do_err_dialog(
+                window, "A script named {} already exists!".format(script.name)
+            )
             continue
         script_manager.add_script(script)
         break

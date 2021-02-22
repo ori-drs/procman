@@ -751,7 +751,6 @@ class Sheriff:
                 msg = deputy._make_orders_message(self._id)
                 self.orders_pub.publish(msg)
 
-
     def _add_command(
         self,
         command_id,
@@ -1107,7 +1106,6 @@ class Sheriff:
                 stop_signal,
                 stop_time_allowed,
             )
-
 
         for subgroup in list(group_node.subgroups.values()):
             if group_node.name:

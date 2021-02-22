@@ -714,7 +714,7 @@ def main():
         action="store_true",
         default=False,
         help="By default, sheriff will wait for a roscore to become available before doing anything. If this argument "
-             "is passed, sheriff will start a roscore itself.",
+        "is passed, sheriff will start a roscore itself.",
     )
     parser.add_argument(
         "--persist-roscore",
@@ -801,7 +801,7 @@ def main():
                 sys.exit(1)
             # Use lambda with *_ as input - we ignore all parameters to the callback
             GObject.timeout_add(
-                200, lambda *_: gui.run_script(None, script, args.script_done_action),
+                200, lambda *_: gui.run_script(None, script, args.script_done_action)
             )
 
         signal.signal(signal.SIGINT, lambda *_: Gtk.main_quit())
