@@ -3,6 +3,7 @@ import time
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import Pango
 import rospy
 
@@ -62,7 +63,7 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
         self.add(self.stdout_textview)
 
         stdout_adj = self.get_vadjustment()
-        stdout_adj.set_data("scrolled-to-end", 1)
+        stdout_adj.scrolled_to_end = 1
         stdout_adj.connect("changed", self.on_adj_changed)
         stdout_adj.connect("value-changed", self.on_adj_value_changed)
 
@@ -91,7 +92,7 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
             "pm_output", ProcmanOutput, self.on_procman_output
         )
 
-        self.text_tags = {"normal": Gtk.TextTag("normal")}
+        self.text_tags = {"normal": Gtk.TextTag.new("normal")}
         for tt in list(self.text_tags.values()):
             self.sheriff_tb.get_tag_table().add(tt)
 

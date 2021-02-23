@@ -1,4 +1,5 @@
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import Pango
 
 import procman_ros.sheriff as sheriff
@@ -36,7 +37,7 @@ class SheriffCommandTreeView(Gtk.TreeView):
         for command_id, renderer, col_id, cell_data_func in cols_to_make:
             col = Gtk.TreeViewColumn(command_id, renderer, text=col_id)
             col.set_sort_column_id(col_id)
-            col.set_data("col-id", col_id)
+            col.col_id = col_id
             if cell_data_func:
                 col.set_cell_data_func(renderer, cell_data_func)
             self.columns.append(col)
@@ -55,7 +56,7 @@ class SheriffCommandTreeView(Gtk.TreeView):
         self.add_events(
             Gdk.EventMask.KEY_PRESS_MASK
             | Gdk.EventType.BUTTON_PRESS
-            | Gdk._2BUTTON_PRESS
+            | Gdk.EventType._2BUTTON_PRESS
         )
         self.connect("key-press-event", self._on_cmds_tv_key_press_event)
         self.connect("button-press-event", self._on_cmds_tv_button_press_event)
