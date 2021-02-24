@@ -65,7 +65,7 @@ class SheriffCommandTreeView(Gtk.TreeView):
         # commands treeview context menu
         self.cmd_ctxt_menu = Gtk.Menu()
 
-        self.start_cmd_ctxt_mi = Gtk.MenuItem("_Start")
+        self.start_cmd_ctxt_mi = Gtk.MenuItem("_Start") # needs new_with_mnemonic?
         self.cmd_ctxt_menu.append(self.start_cmd_ctxt_mi)
         self.start_cmd_ctxt_mi.connect("activate", self._start_selected_commands)
 
@@ -143,7 +143,7 @@ class SheriffCommandTreeView(Gtk.TreeView):
 
     def save_settings(self, save_map):
         for col in self.get_columns():
-            col_id = col.get_data("col-id")
+            col_id = col.col_id
 
             visible_key = "command_treeview:visible:{}".format(col_id)
             width_key = "command_treeview:width:{}".format(col_id)

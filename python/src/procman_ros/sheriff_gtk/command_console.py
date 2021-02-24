@@ -41,7 +41,7 @@ def now_str():
 
 class CommandExtraData:
     def __init__(self, text_tag_table):
-        self.tb = Gtk.TextBuffer(text_tag_table)
+        self.tb = Gtk.TextBuffer.new(text_tag_table)
         self.printf_keep_count = [0, 0, 0, 0, 0, 0]
         self.printf_drop_count = 0
 
@@ -295,11 +295,11 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
         save_map["console_font"] = self.font_str
 
     def on_adj_changed(self, adj):
-        if adj.get_data("scrolled-to-end"):
-            adj.set_value(adj.upper - adj.page_size)
+        if adj.scrolled_to_end:
+            adj.set_value(adj.get_upper() - adj.get_page_size())
 
     def on_adj_value_changed(self, adj):
-        adj.set_data("scrolled-to-end", adj.value == adj.upper - adj.page_size)
+        adj.scrolled_to_end = adj.get_value() == (adj.get_upper() - adj.get_page_size())
 
     def _handle_command_output(self, command_id, text):
         cmd = self.sheriff.get_command(command_id)
