@@ -280,10 +280,14 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
             self.set_output_rate_limit(save_map["console_rate_limit"])
 
         if "console_background_color" in save_map:
-            self.set_background_color(Gdk.Color(save_map["console_background_color"]))
+            bg_color = Gdk.RGBA()
+            bg_color.parse(save_map["console_background_color"])
+            self.set_background_color(bg_color.to_color())
 
         if "console_text_color" in save_map:
-            self.set_text_color(Gdk.Color(save_map["console_text_color"]))
+            text_color = Gdk.RGBA()
+            text_color.parse(save_map["console_text_color"])
+            self.set_text_color(text_color.to_color())
 
         if "console_font" in save_map:
             self.set_font(save_map["console_font"])
