@@ -457,12 +457,12 @@ class SheriffGtk(SheriffListener):
 
         if len(name_parts) == 1:
             for smi in menu.get_children():
-                if script == smi.get_data("sheriff-script"):
+                if script == smi.sheriff_script:
                     menu.remove(smi)
                     return
         else:
             for smi in menu.get_children():
-                if not smi.get_data("sheriff-script-submenu"):
+                if not smi.sheriff_script_submenu:
                     continue
                 submenu_name = smi.get_label()
                 submenu = smi.get_submenu()
@@ -495,7 +495,7 @@ class SheriffGtk(SheriffListener):
         )
         remove_mi.connect(
             "activate",
-            lambda mi: self.script_manager.remove_script(mi.get_data("sheriff-script")),
+            lambda mi: self.script_manager.remove_script(mi.sheriff_script),
         )
 
         self.edit_script_mi.set_sensitive(True)
