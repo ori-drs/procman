@@ -187,8 +187,6 @@ class SheriffGtk(SheriffListener):
 
     def command_removed(self, deputy_obj, cmd_obj):
         self._schedule_cmds_update()
-        if self.cfg_to_load and not self.sheriff.get_all_commands():
-            GLib.idle_add(self._do_load_config)
 
     def command_status_changed(self, cmd_obj, old_status, new_status):
         self._schedule_cmds_update()
