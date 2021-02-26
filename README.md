@@ -79,4 +79,4 @@ doxygen
 - Catkinization and porting from LCM to ROS by Marco Camurri and Michal Staniaszek
 
 ## License
-This software is released under the LGPLv2.1 Software License. See the LICENSE for more details.
+This software is released under the BSD-3 Software License. See the LICENSE for more details.
