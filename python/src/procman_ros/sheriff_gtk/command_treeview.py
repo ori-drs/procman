@@ -155,7 +155,7 @@ class SheriffCommandTreeView(Gtk.TreeView):
 
     def load_settings(self, save_map):
         for col in self.get_columns():
-            col_id = col.get_data("col-id")
+            col_id = col.col_id
 
             visible_key = "command_treeview:visible:{}".format(col_id)
             width_key = "command_treeview:width:{}".format(col_id)

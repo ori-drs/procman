@@ -275,7 +275,8 @@ class SheriffGtk(SheriffListener):
         if not os.path.exists(self.config_fname):
             return
         try:
-            d = pickle.load(open(self.config_fname))
+            with open(self.config_fname, 'rb') as config_file:
+                d = pickle.load(config_file)
         except Exception as err:
             print(err)
             return
@@ -296,7 +297,8 @@ class SheriffGtk(SheriffListener):
         self.deputies_tv.save_settings(d)
 
         try:
-            pickle.dump(d, open(self.config_fname, "w"))
+            with open(self.config_fname, 'wb') as config_file:
+                pickle.dump(d, config_file)
         except Exception as err:
             print(err)
 
@@ -411,7 +413,7 @@ class SheriffGtk(SheriffListener):
         if len(name_parts) == 1:
             insert_point = 0
             for i, smi in enumerate(menu.get_children()):
-                other_script = smi.get_data("sheriff-script")
+                other_script = getattr(smi, 'sheriff_script', None)
                 if other_script is script:
                     return smi
                 if other_script is None:
@@ -420,7 +422,7 @@ class SheriffGtk(SheriffListener):
                     insert_point += 1
             if create:
                 mi = Gtk.MenuItem(partname, use_underline=False)
-                mi.set_data("sheriff-script", script)
+                mi.sheriff_script = script
                 menu.insert(mi, insert_point)
                 mi.show()
                 return mi
@@ -428,7 +430,7 @@ class SheriffGtk(SheriffListener):
         else:
             insert_point = 0
             for i, smi in enumerate(menu.get_children()):
-                if not smi.get_data("sheriff-script-submenu"):
+                if not getattr(smi, 'sheriff_script_submenu', None):
                     continue
                 submenu_name = smi.get_label()
                 if submenu_name == partname:
@@ -442,7 +444,7 @@ class SheriffGtk(SheriffListener):
                 smi = Gtk.MenuItem(partname)
                 submenu = Gtk.Menu()
                 smi.set_submenu(submenu)
-                smi.set_data("sheriff-script-submenu", True)
+                smi.sheriff_script_submenu = True
                 menu.insert(smi, insert_point)
                 smi.show()
                 return self._get_script_menuitem(
