@@ -106,7 +106,7 @@ class DeputyTreeView(Gtk.TreeView):
         self.sheriff.remove_empty_deputies()
         self.deputies_ts.update()
 
-    def _deputy_last_update_cell_data_func(self, column, cell, model, model_iter):
+    def _deputy_last_update_cell_data_func(self, column, cell, model, model_iter, *data):
         # bit of a hack to pull out the last update time
         try:
             last_update = float(

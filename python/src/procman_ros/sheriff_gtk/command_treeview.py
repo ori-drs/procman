@@ -407,7 +407,7 @@ class SheriffCommandTreeView(Gtk.TreeView):
             return
         self._do_edit_command_dialog([cmd])
 
-    def _status_cell_data_func(self, column, cell, model, model_iter):
+    def _status_cell_data_func(self, column, cell, model, model_iter, *data):
         color_map = {
             sheriff.TRYING_TO_START: "Orange",
             sheriff.RESTARTING: "Orange",
