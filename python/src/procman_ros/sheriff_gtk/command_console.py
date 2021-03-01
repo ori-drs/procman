@@ -171,7 +171,7 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
             codes.sort()
             key = ";".join(codes)
         if key not in self.text_tags:
-            tag = Gtk.TextTag(key)
+            tag = Gtk.TextTag.new(key)
             for code in codes:
                 if code in ANSI_CODES_TO_TEXT_TAG_PROPERTIES:
                     propname, propval = ANSI_CODES_TO_TEXT_TAG_PROPERTIES[code]
