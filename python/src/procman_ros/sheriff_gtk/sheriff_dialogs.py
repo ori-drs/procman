@@ -292,17 +292,17 @@ class AddModifyScriptDialog(Gtk.Dialog):
         title = "Edit script"
         if script is None:
             title = "New script"
-        GObject.GObject.__init__(
+        Gtk.Dialog.__init__(
             self,
             title,
             parent,
             Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-            (
-                Gtk.STOCK_OK,
-                Gtk.ResponseType.ACCEPT,
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.REJECT,
-            ),
+        )
+        self.add_buttons(
+            Gtk.STOCK_OK,
+            Gtk.ResponseType.ACCEPT,
+            Gtk.STOCK_CANCEL,
+            Gtk.ResponseType.REJECT,
         )
 
         self.set_default_size(800, 400)
@@ -321,7 +321,7 @@ class AddModifyScriptDialog(Gtk.Dialog):
             self.script_tv.get_buffer().set_text(default_contents)
         sw = Gtk.ScrolledWindow()
         sw.add(self.script_tv)
-        hbox.pack_start(sw, True, True)
+        hbox.pack_start(sw, True, True, 0)
         if script is not None:
             self.script_tv.grab_focus()
 
@@ -348,8 +348,8 @@ class AddModifyScriptDialog(Gtk.Dialog):
         #        wait ms ###;
         #        run_script "other-script-name";
 
-        hbox.pack_start(help_tv, False, False)
-        self.vbox.pack_start(hbox, True, True)
+        hbox.pack_start(help_tv, False, False, 0)
+        self.vbox.pack_start(hbox, True, True, 0)
         hbox.show_all()
 
     #    def get_script_name (self): return self.name_te.get_text ()
