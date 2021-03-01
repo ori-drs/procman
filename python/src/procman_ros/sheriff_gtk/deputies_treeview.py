@@ -93,14 +93,14 @@ class DeputyTreeView(Gtk.TreeView):
         # deputies treeview context menu
         self.deputies_ctxt_menu = Gtk.Menu()
 
-        self.cleanup_deputies_ctxt_mi = Gtk.MenuItem("_Cleanup")
+        self.cleanup_deputies_ctxt_mi = Gtk.MenuItem.new_with_mnemonic("_Cleanup")
         self.deputies_ctxt_menu.append(self.cleanup_deputies_ctxt_mi)
         self.cleanup_deputies_ctxt_mi.connect("activate", self._cleanup_deputies)
         self.deputies_ctxt_menu.show_all()
 
     def _on_deputies_tv_button_press_event(self, treeview, event):
         if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
-            self.deputies_ctxt_menu.popup(None, None, None, event.button, event.time)
+            self.deputies_ctxt_menu.popup(None, None, None, None, event.button, event.time)
             return True
 
     def _cleanup_deputies(self, *args):
