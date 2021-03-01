@@ -265,9 +265,9 @@ class SheriffCommandTreeView(Gtk.TreeView):
             self.edit_cmd_ctxt_mi.set_sensitive(can_modify)
             self.new_cmd_ctxt_mi.set_sensitive(can_add_load)
 
-            self.cmd_ctxt_menu.popup(None, None, None, event.button, time)
+            self.cmd_ctxt_menu.popup(None, None, None, None, event.button, time)
             return 1
-        elif event.type == Gdk._2BUTTON_PRESS and event.button == 1:
+        elif event.type == Gdk.EventType._2BUTTON_PRESS and event.button == 1:
             # expand or collapse groups when double clicked
             sel = self.get_selection()
             model, rows = sel.get_selected_rows()
