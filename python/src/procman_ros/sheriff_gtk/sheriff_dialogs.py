@@ -4,6 +4,7 @@ import signal
 
 from gi.repository import GObject
 from gi.repository import Gtk
+from gi.repository import Gdk
 
 from procman_ros.sheriff_config import Parser, ScriptNode
 from procman_ros.sheriff_script import SheriffScript, ScriptManager
@@ -181,18 +182,19 @@ class AddModifyCommandDialog(Gtk.Dialog):
 class PreferencesDialog(Gtk.Dialog):
     def __init__(self, sheriff_gtk, parent):
         # add command dialog
-        GObject.GObject.__init__(
+        Gtk.Dialog.__init__(
             self,
             "Preferences",
             parent,
             Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-            (
-                Gtk.STOCK_OK,
-                Gtk.ResponseType.ACCEPT,
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.REJECT,
-            ),
         )
+        self.add_buttons(
+            Gtk.STOCK_OK,
+            Gtk.ResponseType.ACCEPT,
+            Gtk.STOCK_CANCEL,
+            Gtk.ResponseType.REJECT,
+        )
+
         table = Gtk.Table(4, 2)
 
         # console rate limit
@@ -207,19 +209,21 @@ class PreferencesDialog(Gtk.Dialog):
 
         # background color
         table.attach(Gtk.Label(label="Console background color"), 0, 1, 1, 2, 0, 0)
-        self.bg_color_bt = Gtk.ColorButton(
-            sheriff_Gtk.cmd_console.get_background_color()
+        self.bg_color_bt = Gtk.ColorButton.new_with_rgba(
+            Gdk.RGBA.from_color(sheriff_gtk.cmd_console.get_background_color())
         )
         table.attach(self.bg_color_bt, 1, 2, 1, 2)
 
         # foreground color
         table.attach(Gtk.Label(label="Console text color"), 0, 1, 2, 3, 0, 0)
-        self.text_color_bt = Gtk.ColorButton(sheriff_gtk.cmd_console.get_text_color())
+        self.text_color_bt = Gtk.ColorButton.new_with_rgba(
+            Gdk.RGBA.from_color(sheriff_gtk.cmd_console.get_text_color())
+        )
         table.attach(self.text_color_bt, 1, 2, 2, 3)
 
         # font
         table.attach(Gtk.Label(label="Console font"), 0, 1, 3, 4, 0, 0)
-        self.font_bt = Gtk.FontButton(sheriff_gtk.cmd_console.get_font())
+        self.font_bt = Gtk.FontButton.new_with_font(sheriff_gtk.cmd_console.get_font())
         table.attach(self.font_bt, 1, 2, 3, 4)
 
         self.vbox.pack_start(table, False, False, 0)

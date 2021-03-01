@@ -1,6 +1,7 @@
 import time
 from gi.repository import GObject
 from gi.repository import Gtk
+from gi.repository import Gdk
 
 import procman_ros.sheriff as sheriff
 import procman_ros.sheriff_gtk.command_model as cm
