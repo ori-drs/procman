@@ -65,29 +65,29 @@ class SheriffCommandTreeView(Gtk.TreeView):
         # commands treeview context menu
         self.cmd_ctxt_menu = Gtk.Menu()
 
-        self.start_cmd_ctxt_mi = Gtk.MenuItem("_Start") # needs new_with_mnemonic?
+        self.start_cmd_ctxt_mi = Gtk.MenuItem.new_with_mnemonic("_Start")
         self.cmd_ctxt_menu.append(self.start_cmd_ctxt_mi)
         self.start_cmd_ctxt_mi.connect("activate", self._start_selected_commands)
 
-        self.stop_cmd_ctxt_mi = Gtk.MenuItem("_Stop")
+        self.stop_cmd_ctxt_mi = Gtk.MenuItem.new_with_mnemonic("S_top")
         self.cmd_ctxt_menu.append(self.stop_cmd_ctxt_mi)
         self.stop_cmd_ctxt_mi.connect("activate", self._stop_selected_commands)
 
-        self.restart_cmd_ctxt_mi = Gtk.MenuItem("R_estart")
+        self.restart_cmd_ctxt_mi = Gtk.MenuItem.new_with_mnemonic("R_estart")
         self.cmd_ctxt_menu.append(self.restart_cmd_ctxt_mi)
         self.restart_cmd_ctxt_mi.connect("activate", self._restart_selected_commands)
 
-        self.remove_cmd_ctxt_mi = Gtk.MenuItem("_Remove")
+        self.remove_cmd_ctxt_mi = Gtk.MenuItem.new_with_mnemonic("_Remove")
         self.cmd_ctxt_menu.append(self.remove_cmd_ctxt_mi)
         self.remove_cmd_ctxt_mi.connect("activate", self._remove_selected_commands)
 
         self.cmd_ctxt_menu.append(Gtk.SeparatorMenuItem())
 
-        self.edit_cmd_ctxt_mi = Gtk.MenuItem("_Edit")
+        self.edit_cmd_ctxt_mi = Gtk.MenuItem.new_with_mnemonic("_Edit")
         self.cmd_ctxt_menu.append(self.edit_cmd_ctxt_mi)
         self.edit_cmd_ctxt_mi.connect("activate", self._edit_selected_command)
 
-        self.new_cmd_ctxt_mi = Gtk.MenuItem("_New Command")
+        self.new_cmd_ctxt_mi = Gtk.MenuItem.new_with_mnemonic("_New Command")
         self.cmd_ctxt_menu.append(self.new_cmd_ctxt_mi)
         self.new_cmd_ctxt_mi.connect(
             "activate",
