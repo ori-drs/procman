@@ -27,17 +27,17 @@ class AddModifyCommandDialog(Gtk.Dialog):
         is_add=True,
     ):
         # add command dialog
-        GObject.GObject.__init__(
+        Gtk.Dialog.__init__(
             self,
             "Add/Modify Command",
             parent,
             Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-            (
-                Gtk.STOCK_OK,
-                Gtk.ResponseType.ACCEPT,
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.REJECT,
-            ),
+        )
+        self.add_buttons(
+            Gtk.STOCK_OK,
+            Gtk.ResponseType.ACCEPT,
+            Gtk.STOCK_CANCEL,
+            Gtk.ResponseType.REJECT,
         )
         table = Gtk.Table(7, 2)
 
@@ -85,7 +85,7 @@ class AddModifyCommandDialog(Gtk.Dialog):
 
         # group
         table.attach(Gtk.Label(label="Group"), 0, 1, 3, 4, 0, 0)
-        self.group_cbe = Gtk.combo_box_entry_new_text()
+        self.group_cbe = Gtk.ComboBoxText.new_with_entry()
         #        groups = groups[:]
         groups.sort()
         for group_name in groups:
