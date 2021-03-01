@@ -700,7 +700,7 @@ def main():
         "--no-gui",
         action="store_false",
         dest="use_gui",
-        help="Runs in headless mode (no GUI).",
+        help="Runs in headless mode (no GUI). Requires a script.",
     )
 
     parser.add_argument(
