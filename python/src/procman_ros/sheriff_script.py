@@ -135,7 +135,7 @@ class SheriffScript:
         return node
 
     def __str__(self):
-        val = 'script "{}" {'.format(escape_str(self.name))
+        val = 'script "{}" {{'.format(escape_str(self.name))
         for action in self.actions:
             val = val + "\n    " + str(action)
         val = val + "\n}\n"

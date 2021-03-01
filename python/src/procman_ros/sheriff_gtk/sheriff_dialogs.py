@@ -355,7 +355,7 @@ class AddModifyScriptDialog(Gtk.Dialog):
     #    def get_script_name (self): return self.name_te.get_text ()
     def get_script_contents(self):
         buf = self.script_tv.get_buffer()
-        return buf.get_text(buf.get_start_iter(), buf.get_end_iter())
+        return buf.get_text(buf.get_start_iter(), buf.get_end_iter(), True)
 
 
 def _do_err_dialog(window, msg):
