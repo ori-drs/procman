@@ -252,7 +252,7 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
         bounds = tb.get_selection_bounds()
 
         if bounds:
-            text = tb.get_text(bounds[0], bounds[1])
+            text = tb.get_text(bounds[0], bounds[1], True)
             clipboard = Gtk.Clipboard()
             clipboard.set_text(text)
             clipboard.store()
