@@ -88,7 +88,7 @@ class SheriffCommandConsole(gtk.ScrolledWindow, SheriffListener):
         self._cmd_extradata = {}
 
         self.output_sub = rospy.Subscriber(
-            "pm_output", ProcmanOutput, self.on_procman_output
+            "/procman/output", ProcmanOutput, self.on_procman_output
         )
 
         self.text_tags = {"normal": gtk.TextTag("normal")}
