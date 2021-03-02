@@ -576,15 +576,15 @@ class Sheriff:
         """
         rospy.init_node("procman_ros_sheriff")
         self.info_sub = rospy.Subscriber(
-            "pm_info", ProcmanDeputyInfo, self._on_pmd_info
+            "/procman/info", ProcmanDeputyInfo, self._on_pmd_info
         )
         self.orders_sub = rospy.Subscriber(
-            "pm_orders", ProcmanOrders, self._on_pmd_orders
+            "/procman/orders", ProcmanOrders, self._on_pmd_orders
         )
         self.discover_pub = rospy.Publisher(
-            "pm_discover", ProcmanDiscovery, queue_size=10
+            "/procman/discover", ProcmanDiscovery, queue_size=10
         )
-        self.orders_pub = rospy.Publisher("pm_orders", ProcmanOrders, queue_size=10)
+        self.orders_pub = rospy.Publisher("/procman/orders", ProcmanOrders, queue_size=10)
 
         self._deputies = {}
         self._is_observer = False
