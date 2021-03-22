@@ -10,7 +10,6 @@ import signal
 import threading
 import rospy
 
-import lcm
 from procman_ros.msg import ProcmanCmd
 from procman_ros.msg import ProcmanDeputyInfo
 from procman_ros.msg import ProcmanOrders
@@ -577,15 +576,15 @@ class Sheriff:
         """
         rospy.init_node("procman_ros_sheriff")
         self.info_sub = rospy.Subscriber(
-            "pm_info", ProcmanDeputyInfo, self._on_pmd_info
+            "/procman/info", ProcmanDeputyInfo, self._on_pmd_info
         )
         self.orders_sub = rospy.Subscriber(
-            "pm_orders", ProcmanOrders, self._on_pmd_orders
+            "/procman/orders", ProcmanOrders, self._on_pmd_orders
         )
         self.discover_pub = rospy.Publisher(
-            "pm_discover", ProcmanDiscovery, queue_size=10
+            "/procman/discover", ProcmanDiscovery, queue_size=10
         )
-        self.orders_pub = rospy.Publisher("pm_orders", ProcmanOrders, queue_size=10)
+        self.orders_pub = rospy.Publisher("/procman/orders", ProcmanOrders, queue_size=10)
 
         self._deputies = {}
         self._is_observer = False
@@ -751,7 +750,6 @@ class Sheriff:
             if deputy._last_update_utime > 0:
                 msg = deputy._make_orders_message(self._id)
                 self.orders_pub.publish(msg)
-
 
     def _add_command(
         self,
@@ -1108,7 +1106,6 @@ class Sheriff:
                 stop_signal,
                 stop_time_allowed,
             )
-
 
         for subgroup in list(group_node.subgroups.values()):
             if group_node.name:

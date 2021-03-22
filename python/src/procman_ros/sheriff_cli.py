@@ -5,7 +5,6 @@ import subprocess
 import sys
 import time
 
-from lcm import LCM
 from procman_ros.sheriff_script import ScriptManager, ScriptListener
 from procman_ros.sheriff import Sheriff
 import procman_ros.sheriff as sheriff
@@ -158,7 +157,7 @@ def main():
     args = parser.parse_args(sys.argv[1:])
 
     try:
-        cfg = sheriff.load_config_file(file(args.procman_config_file))
+        cfg = sheriff.load_config_file(open(args.procman_config_file))
     except Exception as xcp:
         print("Unable to load config file.")
         print(xcp)

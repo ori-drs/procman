@@ -33,11 +33,7 @@ class ParseError(ValueError):
 line {} col {} {}
 {}
 """.format(
-            self.msg,
-            self.lineno,
-            self.offset,
-            tokenstr,
-            self.text,
+            self.msg, self.lineno, self.offset, tokenstr, self.text
         )
         s += " " * (self.offset - ntabs - 1) + "\t" * ntabs + "^"
         return s
@@ -177,7 +173,7 @@ class CommandNode:
         s = "    " * indent
         lines = []
         command_id = self.attributes["command_id"]
-        lines.append(s + 'cmd "{}" {'.format(escape_str(command_id)))
+        lines.append(s + 'cmd "{}" {{'.format(escape_str(command_id)))
         pairs = list(self.attributes.items())
         pairs.sort()
         for key, val in pairs:
@@ -239,7 +235,7 @@ class GroupNode:
             val = val + "\n".join(
                 [cmd.to_config_string(indent + 1) for cmd in self.commands]
             )
-            val = val + "\n{}}\n".format(s)
+            val = val + "\n{}}}\n".format(s)
         return val
 
     def __str__(self):
@@ -292,9 +288,7 @@ class WaitStatusActionNode:
 
     def __str__(self):
         return 'wait {} "{}" status "{}";'.format(
-            self.ident_type,
-            escape_str(self.ident),
-            self.wait_status,
+            self.ident_type, escape_str(self.ident), self.wait_status
         )
 
 
@@ -318,7 +312,7 @@ class ScriptNode:
         self.actions.append(action)
 
     def __str__(self):
-        val = 'script "{}" {'.format(escape_str(self.name))
+        val = 'script "{}" {{'.format(escape_str(self.name))
         for action in self.actions:
             val = val + "\n    " + str(action)
         val = val + "\n}\n"
@@ -587,5 +581,5 @@ if __name__ == "__main__":
         print("usage: sheriff_config.py <fname>")
         sys.exit(1)
 
-    config = Parser().parse(file(fname))
+    config = Parser().parse(open(fname))
     print(config)

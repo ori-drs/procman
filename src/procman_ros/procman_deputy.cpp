@@ -109,15 +109,15 @@ ProcmanDeputy::ProcmanDeputy(const DeputyOptions &options)
   pm_ = new Procman();
   // Queue sizes are important because messages are not immediately processed -
   // if queue size is very small some deputies will never receive orders
-  info_sub_ = nh_.subscribe("pm_info", 10, &ProcmanDeputy::InfoReceived, this);
+  info_sub_ = nh_.subscribe("/procman/info", 10, &ProcmanDeputy::InfoReceived, this);
   discovery_sub_ =
-      nh_.subscribe("pm_discover", 10, &ProcmanDeputy::DiscoveryReceived, this);
-  info_pub_ = nh_.advertise<procman_ros::ProcmanDeputyInfo>("pm_info", 10);
+      nh_.subscribe("/procman/discover", 10, &ProcmanDeputy::DiscoveryReceived, this);
+  info_pub_ = nh_.advertise<procman_ros::ProcmanDeputyInfo>("/procman/info", 10);
   discover_pub_ =
-      nh_.advertise<procman_ros::ProcmanDiscovery>("pm_discover", 10);
-  output_pub_ = nh_.advertise<procman_ros::ProcmanOutput>("pm_output", 100);
+      nh_.advertise<procman_ros::ProcmanDiscovery>("/procman/discover", 10);
+  output_pub_ = nh_.advertise<procman_ros::ProcmanOutput>("/procman/output", 100);
   orders_sub_ =
-      nh_.subscribe("pm_orders", 10, &ProcmanDeputy::OrdersReceived, this);
+      nh_.subscribe("/procman/orders", 10, &ProcmanDeputy::OrdersReceived, this);
   // Setup timers
 
   // must create this before calling onDiscoveryTimer, otherwise it can be

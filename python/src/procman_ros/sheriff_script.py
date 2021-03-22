@@ -92,9 +92,7 @@ class WaitStatusAction:
 
     def __str__(self):
         return 'wait {} "{}" status "{}";'.format(
-            self.ident_type,
-            escape_str(self.ident),
-            self.wait_status,
+            self.ident_type, escape_str(self.ident), self.wait_status
         )
 
 
@@ -137,7 +135,7 @@ class SheriffScript:
         return node
 
     def __str__(self):
-        val = 'script "{}" {'.format(escape_str(self.name))
+        val = 'script "{}" {{'.format(escape_str(self.name))
         for action in self.actions:
             val = val + "\n    " + str(action)
         val = val + "\n}\n"
@@ -163,7 +161,9 @@ class SheriffScript:
             elif action_node.action_type == "run_script":
                 action = RunScriptAction(action_node.script_name)
             else:
-                raise ValueError("unrecognized action {}".format(action_node.action_type))
+                raise ValueError(
+                    "unrecognized action {}".format(action_node.action_type)
+                )
             script.add_action(action)
         return script
 
@@ -500,7 +500,9 @@ class ScriptManager:
                     _dbg("cmd [{}] not ready ({})".format(cmd.command_id, cmd_status))
                     return
         else:
-            raise ValueError("Invalid desired status {}".format(self._waiting_for_status))
+            raise ValueError(
+                "Invalid desired status {}".format(self._waiting_for_status)
+            )
 
         # all commands passed the status check.  schedule the next action
         self._waiting_on_commands = []

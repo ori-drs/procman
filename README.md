@@ -53,7 +53,7 @@ in your workspace
 * rocpp
 * rospy
 * Python
-* PyGTK  (procman-sheriff is written in Python with PyGTK)
+* PyGObject/GTK+3
 
 Currently only tested on GNU/Linux.  Some stuff will definitely only work on
 Linux (e.g., the process memory, CPU statistics).
@@ -76,7 +76,8 @@ doxygen
 ```
 ## Credits
 - [Original program](https://github.com/ashuang/procman) by [Albert Huang](https://github.com/ashuang). 
-- Catkinization and porting from LCM to ROS by Marco Camurri and Michal Staniaszek
+- Catkinization and porting from LCM to ROS by [Marco Camurri](https://github.com/mcamurri) and [Michal Staniaszek](https://github.com/heuristicus)
+- Porting to PyGObject/GTK+3 by [Michal Staniaszek](https://github.com/heuristicus)
 
 ## License
 This software is released under the BSD-3 Software License. See the LICENSE for more details.
