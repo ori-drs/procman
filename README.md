@@ -80,4 +80,4 @@ doxygen
 - Porting to PyGObject/GTK+3 by [Michal Staniaszek](https://github.com/heuristicus)
 
 ## License
-This software is released under the LGPLv2.1 Software License. See the LICENSE for more details.
+This software is released under the BSD-3 Software License. See the LICENSE for more details.
