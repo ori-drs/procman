@@ -60,5 +60,8 @@ install(TARGETS deputy procman_ros
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
+install(FILES python/procman-ros-sheriff.glade
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/python)
+
 catkin_install_python(PROGRAMS scripts/sheriff
                       DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
