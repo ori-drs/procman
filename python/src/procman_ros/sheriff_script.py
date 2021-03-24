@@ -193,7 +193,9 @@ class ScriptExecutionContext:
         action = self.script.actions[self.current_action]
 
         if action.action_type == "run_script":
-            subscript = self.sheriff.get_script(action.script_name)
+            # In this context we should always already have the lock. The default get_script
+            # function tries to acquire the lock, so do not use that one.
+            subscript = self.sheriff.get_script_without_lock(action.script_name)
             self.subscript_context = ScriptExecutionContext(self.sheriff, subscript)
             return self.get_next_action()
         else:
@@ -363,6 +365,15 @@ class ScriptManager:
         """
         with self._lock:
             return self._get_script(name)
+
+    def get_script_without_lock(self, name):
+        """Look up a script by name, without acquiring the script lock
+
+        @param name the name of the script
+
+        @return a SheriffScript object, or None if no such script is found.
+        """
+        return self._get_script(name)
 
     def get_scripts(self):
         """Retrieve a list of all scripts
