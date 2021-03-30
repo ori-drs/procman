@@ -530,8 +530,12 @@ class SheriffGtk(SheriffListener):
         if current_cmds:
             for cmd in current_cmds:
                 self.sheriff.remove_command(cmd)
-        else:
-            self._do_load_config()
+            # the remove_command function only schedules commands to be removed, it takes a bit of time for them to
+            # actually be removed. All commands must be removed before a config can be loaded
+            import time
+            time.sleep(0.5)
+
+        self._do_load_config()
 
     # GTK signal handlers
     def on_load_cfg_mi_activate(self, *args):
