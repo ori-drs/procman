@@ -552,12 +552,10 @@ class Sheriff:
     \code
     import procman_ros
 
-    sheriff = procman_ros.Sheriff(lcm_obj)
+    sheriff = procman_ros.Sheriff()
 
     # add commands or load a config file
-
-    while True:
-        lcm_obj.handle()
+    # ROS handles the communication
     \endcode
 
     ## %SheriffListener ##
@@ -567,13 +565,7 @@ class Sheriff:
     """
 
     def __init__(self):
-        """Initialize a new Sheriff object.
-
-        \param lcm_obj the LCM object to use for communication.  If None, then
-        the sheriff creates a new lcm.LCM() instance and spawns a thread that
-        endlessly calls LCM.handle(). If this is passed in by the user, then
-        the user is expected to call LCM.handle().
-        """
+        """Initialize a new Sheriff object"""
         rospy.init_node("procman_ros_sheriff")
         self.info_sub = rospy.Subscriber(
             "/procman/info", ProcmanDeputyInfo, self._on_pmd_info
@@ -1152,10 +1144,6 @@ class Sheriff:
 
                     group = config_obj.get_group(cmd._group, True)
                     group.add_command(cmd_node)
-
-    def _lcm_thread(self):
-        while not self._exiting:
-            self._lcm.handle_timeout(200)
 
     def _worker_thread(self):
         send_interval = 1.0

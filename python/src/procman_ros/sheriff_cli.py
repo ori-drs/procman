@@ -97,9 +97,6 @@ class SheriffHeadless(ScriptListener):
             if self.script:
                 time.sleep(0.2)
                 self._start_script()
-
-            while not self._should_exit:
-                self.lcm_obj.handle_timeout(200)
         except KeyboardInterrupt:
             pass
         except OSError:

@@ -21,7 +21,6 @@ struct DeputyOptions {
   static DeputyOptions Defaults();
 
   std::string deputy_id;
-  std::string lcm_url;
   bool verbose;
 };
 
