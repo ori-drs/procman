@@ -8,13 +8,15 @@ computers. There are several ways to use procman:
 
 ## Sheriff / Deputy GUI mode
 
-In this mode, every workstation runs a "deputy" process:
+In this mode, every workstation runs a *deputy* process:
 
 ```
 rosrun procman_ros deputy
 ```
 
-One workstation runs a "sheriff" process, which provides a GUI to command and
+If you like, you can specify a name for the deputy with `-i name`. By default, the deputy will use the hostname of the machine it is run on.
+
+One workstation runs a *sheriff* process, which provides a GUI to command and
 communicate with the deputies:
 
 ```
@@ -29,13 +31,14 @@ Using the GUI, you can:
 -  save and load process configuration files
 -  view process statistics (memory, CPU usage)
 
-For the special case where you only want to run processes on the local
-computer, the sheriff can act as its own deputy.  To operate in lone ranger
+If you want to start processes on the machine running the sheriff process, the sheriff can start its own deputy. To operate in this *lone ranger*
 mode, run
 
 ```
 rosrun procman_ros sheriff --lone-ranger
 ```
+
+Alternatively, you can start a deputy independently as above. Note that when the sheriff starts a deputy its name will be `localhost`.
 
 ## C++ API
 
