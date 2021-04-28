@@ -40,6 +40,10 @@ rosrun procman_ros sheriff --lone-ranger
 
 Alternatively, you can start a deputy independently as above. Note that when the sheriff starts a deputy its name will be `localhost`.
 
+### Environment variables
+
+If the commands you are using a deputy to start require specific environment variables to be available, you must have them defined in the terminal when starting the deputy.
+
 ## C++ API
 
 Procman also provides a C++ API for spawning and managing child processes,
