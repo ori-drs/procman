@@ -39,6 +39,11 @@ def find_procman_glade():
         rospack.get_path("procman_ros"), "python/procman-ros-sheriff.glade"
     )
 
+def find_icon():
+    rospack = rospkg.RosPack()
+    return os.path.join(
+        rospack.get_path("procman_ros"), "doc/images/procman_icon.png"
+    )
 
 def split_script_name(name):
     name = name.strip("/")
@@ -70,6 +75,7 @@ class SheriffGtk(SheriffListener):
         self.builder.connect_signals(self)
 
         self.window = self.builder.get_object("main_window")
+        self.window.set_icon_from_file(find_icon())
 
         self.cmds_ts = cm.SheriffCommandModel(self.sheriff)
         self.cmds_tv = ctv.SheriffCommandTreeView(
