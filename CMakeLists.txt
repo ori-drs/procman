@@ -63,5 +63,8 @@ install(TARGETS deputy procman_ros
 install(FILES python/procman-ros-sheriff.glade
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/python)
 
+install(FILES doc/images/procman_icon.png
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/doc/images)
+
 catkin_install_python(PROGRAMS scripts/sheriff
                       DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
