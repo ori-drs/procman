@@ -12,8 +12,8 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <time.h>
 #include <unistd.h>
+#include <chrono>
 
 #include <map>
 #include <set>
@@ -43,12 +43,16 @@ namespace procman {
 #define DEFAULT_STOP_SIGNAL 2
 #define DEFAULT_STOP_TIME_ALLOWED 7
 
-#define PROCMAN_MAX_MESSAGE_AGE_USEC 60000000LL
+#define PROCMAN_MAX_MESSAGE_AGE_USEC 60'000'000LL
 
 static int64_t timestamp_now() {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return (int64_t)tv.tv_sec * 1000000 + tv.tv_usec;
+  std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+  auto duration = now.time_since_epoch();
+  return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+}
+
+static int64_t ros_timestamp_microsec(ros::Time time) {
+  return time.toNSec() / 1000;
 }
 
 struct DeputyCommand {
@@ -292,7 +296,7 @@ int ProcmanDeputy::StopCommand(DeputyCommand *mi) {
 
   int64_t now = timestamp_now();
   int64_t sigkill_time =
-      mi->first_kill_time + (int64_t)(mi->stop_time_allowed * 1000000);
+      mi->first_kill_time + (int64_t)(mi->stop_time_allowed * 1'000'000);
   bool okay;
   if (!mi->first_kill_time) {
     ROS_DEBUG("[%s] stop (signal %d)\n", mi->cmd_id.c_str(), mi->stop_signal);
@@ -577,14 +581,14 @@ void ProcmanDeputy::OrdersReceived(
 
   // ignore stale orders (where utime is too long ago)
   int64_t now = timestamp_now();
-  if (now - orders->timestamp.toNSec() / 1000 > PROCMAN_MAX_MESSAGE_AGE_USEC) {
-    for (int i = 0; i < orders->ncmds; i++) {
+  if (now - ros_timestamp_microsec(orders->timestamp) > PROCMAN_MAX_MESSAGE_AGE_USEC) {
+    for (int i = 0; i < orders->ncmds; i++) { 
       const ProcmanCmdDesired &cmd_msg = orders->cmds[i];
       PrintfAndTransmit(
           cmd_msg.cmd.command_id,
           "ignoring stale orders (utime %d seconds ago). You may want to check "
           "the system clocks!\n",
-          (int)((now - orders->timestamp.toNSec() / 1000) / 1000000));
+          (int)(now - ros_timestamp_microsec(orders->timestamp) / 100'000));
     }
     return;
   }
