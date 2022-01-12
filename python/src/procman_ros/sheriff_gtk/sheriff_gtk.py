@@ -774,9 +774,9 @@ def main():
     if args.observer:
         if cfg:
             print(
-                "Loading a config file is not allowed when starting in observer mode."
+                "Loading a config file is not allowed when starting in observer mode, ignoring"
             )
-            sys.exit(1)
+            cfg = None
         if not args.use_gui:
             print(
                 "Refusing to start an observer without a gui -- that would be useless."
