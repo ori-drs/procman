@@ -566,7 +566,7 @@ class Sheriff:
 
     def __init__(self):
         """Initialize a new Sheriff object"""
-        rospy.init_node("procman_ros_sheriff")
+        rospy.init_node("procman_ros_sheriff", anonymous=True)
         self.info_sub = rospy.Subscriber(
             "/procman/info", ProcmanDeputyInfo, self._on_pmd_info
         )
