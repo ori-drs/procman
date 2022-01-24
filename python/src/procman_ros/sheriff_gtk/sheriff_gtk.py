@@ -679,7 +679,8 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    parser.add_argument("procman_config_file", help="The configuration file to load")
+    if "-o" not in sys.argv:
+        parser.add_argument("procman_config_file", help="The configuration file to load")
 
     parser.add_argument(
         "--script", help="A script to execute after the config file is loaded."
@@ -738,12 +739,15 @@ def main():
 
     args = parser.parse_args(sys.argv[1:])
 
-    try:
-        cfg = sheriff.load_config_file(open(args.procman_config_file))
-    except Exception as xcp:
-        print("Unable to load config file.")
-        print(xcp)
-        sys.exit(1)
+    if hasattr(args, "procman_config_file"):
+        try:
+            cfg = sheriff.load_config_file(open(args.procman_config_file))
+        except Exception as xcp:
+            print("Unable to load config file.")
+            print(xcp)
+            sys.exit(1)
+    else:
+        cfg = None
 
     if args.start_roscore:
         # Check if roscore is running by looking for the /rosout topic

@@ -68,7 +68,7 @@ class SheriffHeadless(ScriptListener):
 
         # start a local deputy?
         if self.spawn_deputy:
-            args = ["rosrun", "procman_ros", "procman_ros_deputy", "-i", "localhost"]
+            args = ["rosrun", "procman_ros", "deputy", "-i", "localhost"]
             self.spawned_deputy = subprocess.Popen(args)
         else:
             self.spawned_deputy = None
@@ -118,13 +118,15 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    parser.add_argument("procman_config_file", help="The configuration file to load")
+    if "-o" not in sys.argv:
+        parser.add_argument("procman_config_file", help="The configuration file to load")
 
     parser.add_argument(
         "--script", help="A script to execute after the config file is loaded."
     )
 
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
         "-l",
         "--lone-ranger",
         action="store_true",
@@ -132,7 +134,7 @@ def main():
         help="Automatically run a deputy within the sheriff process. This deputy terminates with the "
         "sheriff, along with all the commands it hosts.",
     )
-    parser.add_argument(
+    mode.add_argument(
         "-o",
         "--observer",
         action="store_true",
@@ -153,22 +155,15 @@ def main():
 
     args = parser.parse_args(sys.argv[1:])
 
-    try:
-        cfg = sheriff.load_config_file(open(args.procman_config_file))
-    except Exception as xcp:
-        print("Unable to load config file.")
-        print(xcp)
-        sys.exit(1)
-
-    if args.observer:
-        if cfg:
-            print(
-                "Loading a config file is not allowed when starting in observer mode."
-            )
+    if hasattr(args, "procman_config_file"):
+        try:
+            cfg = sheriff.load_config_file(open(args.procman_config_file))
+        except Exception as xcp:
+            print("Unable to load config file.")
+            print(xcp)
             sys.exit(1)
-        if args.spawn_deputy:
-            print("Lone ranger mode and observer mode are mutually exclusive.")
-            sys.exit(1)
+    else:
+        cfg = None
 
     SheriffHeadless(cfg, args.spawn_deputy, args.script, args.script_done_action).run()
 
