@@ -568,10 +568,10 @@ class Sheriff:
         """Initialize a new Sheriff object"""
         rospy.init_node("procman_ros_sheriff", anonymous=True)
         self.info_sub = rospy.Subscriber(
-            "/procman/info", ProcmanDeputyInfo, self._on_pmd_info
+            "/procman/info", ProcmanDeputyInfo, self._on_pmd_info, queue_size=5
         )
         self.orders_sub = rospy.Subscriber(
-            "/procman/orders", ProcmanOrders, self._on_pmd_orders
+            "/procman/orders", ProcmanOrders, self._on_pmd_orders, queue_size=5
         )
         self.discover_pub = rospy.Publisher(
             "/procman/discover", ProcmanDiscovery, queue_size=10
