@@ -4,6 +4,19 @@ Changelog for package procman_ros
 
 
 
+Forthcoming
+-----------
+* belatedly set version to 0.1.2 and add changelog up to that point based on semi-arbitrary breakpoints
+* orders/info subscribers no longer use infinite queue size
+  I think this could cause issues with the deputy updates and maybe with the stale
+  orders issue. After disconnecting from the roscore wifi, deputy treeview shows
+  red on the deputies as expected. Previously, reconnecting seemed to take a long
+  time. With this I think the info messages come through quicker
+* when using observer mode no longer need to specify a config file, fixes `#33 <https://github.com/ori-drs/procman_ros/issues/33>`_
+* make sheriff node anonymous so that observers can be run, attempts to fix `#32 <https://github.com/ori-drs/procman_ros/issues/32>`_
+* ignore config when starting in observer mode, rather than exiting
+* Contributors: Michal Staniaszek
+
 0.1.2 (2021-05-21)
 ------------------
 * build with C++14, Correct usage of ros timestamp tonsec to match with microsecond timestamp_now, use digit separators, timestamp_now uses chrono
