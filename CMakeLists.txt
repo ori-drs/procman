@@ -3,9 +3,12 @@ project(procman_ros)
 
 add_compile_options(-std=c++14)
 
-find_package(catkin REQUIRED COMPONENTS message_generation
-                                        roscpp
-                                        rospy)
+find_package(catkin REQUIRED COMPONENTS
+  message_generation
+  roscpp
+  rospy
+  std_msgs
+)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -14,13 +17,15 @@ find_package(catkin REQUIRED COMPONENTS message_generation
 catkin_python_setup()
 
 ## Generate messages in the 'msg' folder
-add_message_files(FILES  ProcmanCmdDesired.msg
-                         ProcmanCmd.msg
-                         ProcmanCmdStatus.msg
-                         ProcmanDeputyInfo.msg
-                         ProcmanDiscovery.msg
-                         ProcmanOrders.msg
-                         ProcmanOutput.msg)
+add_message_files(FILES
+  ProcmanCmdDesired.msg
+  ProcmanCmd.msg
+  ProcmanCmdStatus.msg
+  ProcmanDeputyInfo.msg
+  ProcmanDiscovery.msg
+  ProcmanOrders.msg
+  ProcmanOutput.msg
+)
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages()
