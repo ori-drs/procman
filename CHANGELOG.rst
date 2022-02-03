@@ -4,8 +4,8 @@ Changelog for package procman_ros
 
 
 
-Forthcoming
------------
+0.1.3 (2022-02-03)
+------------------
 * belatedly set version to 0.1.2 and add changelog up to that point based on semi-arbitrary breakpoints
 * orders/info subscribers no longer use infinite queue size
   I think this could cause issues with the deputy updates and maybe with the stale
