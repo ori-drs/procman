@@ -1,4 +1,5 @@
 import time
+import functools
 
 from gi.repository import GLib
 from gi.repository import GObject
@@ -50,7 +51,7 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
     def __init__(self, _sheriff):
         super(SheriffCommandConsole, self).__init__()
 
-        self.stdout_maxlines = 2000
+        self.stdout_maxlines = 250
         self.max_kb_per_sec = 0
         self.max_chars_per_2500_ms = 0
 
@@ -202,7 +203,11 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
         if num_lines > self.stdout_maxlines:
             start_iter = tb.get_start_iter()
             chop_iter = tb.get_iter_at_line(num_lines - self.stdout_maxlines)
-            tb.delete(start_iter, chop_iter)
+            # Must use idle_add here otherwise the output console will not be updated correctly
+            GLib.idle_add(functools.partial(self.del_tb, start_iter, chop_iter))
+
+    def del_tb(self, start, chop):
+        self.sheriff_tb.delete(start, chop)
 
     # Sheriff event handlers
     def _gtk_on_sheriff_command_added(self, deputy, command):
