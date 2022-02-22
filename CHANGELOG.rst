@@ -4,8 +4,8 @@ Changelog for package procman_ros
 
 
 
-Forthcoming
------------
+0.1.5 (2022-02-22)
+------------------
 * Fix console output not updating correctly
 * Contributors: Michal Staniaszek
 
