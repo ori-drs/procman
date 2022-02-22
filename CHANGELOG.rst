@@ -4,6 +4,11 @@ Changelog for package procman_ros
 
 
 
+Forthcoming
+-----------
+* Fix console output not updating correctly
+* Contributors: Michal Staniaszek
+
 0.1.4 (2022-02-07)
 ------------------
 * Revert "orders/info subscribers no longer use infinite queue size", this caused deputies to often lose communication for longer periods of time
