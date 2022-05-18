@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 import os
 import signal
@@ -97,6 +99,8 @@ class SheriffHeadless(ScriptListener):
             if self.script:
                 time.sleep(0.2)
                 self._start_script()
+                while self.script_manager._active_script_context is not None:
+                    time.sleep(0.2)
         except KeyboardInterrupt:
             pass
         except OSError:
