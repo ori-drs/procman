@@ -4,8 +4,8 @@ Changelog for package procman_ros
 
 
 
-Forthcoming
------------
+0.1.6 (2022-05-20)
+------------------
 * add wait until script is finished
 * Contributors: David Wisth
 
