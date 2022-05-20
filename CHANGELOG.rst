@@ -4,6 +4,11 @@ Changelog for package procman_ros
 
 
 
+Forthcoming
+-----------
+* add wait until script is finished
+* Contributors: David Wisth
+
 0.1.5 (2022-02-22)
 ------------------
 * Fix console output not updating correctly
