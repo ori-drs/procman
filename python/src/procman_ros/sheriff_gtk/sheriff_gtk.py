@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 
-import os
-import sys
-import traceback
 import argparse
-import subprocess
-import signal
+import os
 import pickle
-import rospkg
+import signal
+import subprocess
+import sys
+import time
+import traceback
 
 import gi
+import rospkg
+import rostopic
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib
 from gi.repository import GObject
@@ -752,27 +755,23 @@ def main():
     if args.start_roscore:
         # Check if roscore is running by looking for the /rosout topic
         try:
-            import rostopic
-
             rostopic.get_topic_class("/rosout")
             roscore_running = True
         except rostopic.ROSTopicIOException as e:
             roscore_running = False
 
+        roscore_process = None
         if not roscore_running:
             # Using os.setpgrp, the roscore subprocess becomes detached from the parent process group,
             # so it no longer receives sigint when we sent ctrl+c on the terminal to kill the sheriff
             devnull = open(os.devnull, "wb")
             preexec = os.setpgrp if args.persist_roscore else None
-            subprocess.Popen(
+            roscore_process = subprocess.Popen(
                 "roscore",
                 stdout=devnull,  # TODO should be subprocess.DEVNULL in >3.3
                 stderr=devnull,
                 preexec_fn=preexec,
             )
-            # allow a bit of time to start the core so that we don't get a warning
-            import time
-
             time.sleep(1)
 
     if args.observer:
@@ -823,6 +822,17 @@ def main():
         signal.signal(signal.SIGINT, lambda *_: Gtk.main_quit())
         signal.signal(signal.SIGTERM, lambda *_: Gtk.main_quit())
         signal.signal(signal.SIGHUP, lambda *_: Gtk.main_quit())
+
+        def on_delete(widget=None, *data):
+            """
+            Runs on alt-f4 or close button
+            """
+            if roscore_process:
+                roscore_process.terminate()
+
+        gui.window.connect("destroy", Gtk.main_quit)
+        gui.window.connect("delete-event", on_delete)
+
         try:
             Gtk.main()
         except KeyboardInterrupt:
