@@ -752,6 +752,7 @@ def main():
     else:
         cfg = None
 
+    roscore_process = None
     if args.start_roscore:
         # Check if roscore is running by looking for the /rosout topic
         try:
@@ -760,7 +761,6 @@ def main():
         except rostopic.ROSTopicIOException as e:
             roscore_running = False
 
-        roscore_process = None
         if not roscore_running:
             # Using os.setpgrp, the roscore subprocess becomes detached from the parent process group,
             # so it no longer receives sigint when we sent ctrl+c on the terminal to kill the sheriff
