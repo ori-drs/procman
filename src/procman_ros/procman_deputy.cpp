@@ -588,7 +588,7 @@ void ProcmanDeputy::OrdersReceived(
           cmd_msg.cmd.command_id,
           "ignoring stale orders (utime %d seconds ago). You may want to check "
           "the system clocks!\n",
-          (int)(now - ros_timestamp_microsec(orders->timestamp) / 100'000));
+          (int)(now - ros_timestamp_microsec(orders->timestamp) / 1'000'000));
     }
     return;
   }
