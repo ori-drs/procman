@@ -4,8 +4,8 @@ Changelog for package procman_ros
 
 
 
-Forthcoming
------------
+0.1.7 (2022-10-27)
+------------------
 * fix conversion from ms to s
 * fix not exiting correctly due to unassigned variable when not starting roscore
 * roscore is correctly terminated on window close, fixes `#30 <https://github.com/ori-drs/procman_ros/issues/30>`_
