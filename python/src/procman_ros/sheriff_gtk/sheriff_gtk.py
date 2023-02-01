@@ -740,7 +740,9 @@ def main():
         "roscore to continue running, use this option.",
     )
 
-    args = parser.parse_args(sys.argv[1:])
+    # Parse only known args, ignore unknown_args
+    # This is essential for use with roslaunch
+    args, _ = parser.parse_known_args(sys.argv[1:])
 
     if hasattr(args, "procman_config_file"):
         try:
