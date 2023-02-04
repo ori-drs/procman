@@ -198,7 +198,7 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
             end_iter = tb.get_end_iter()
             tb.insert_with_tags(end_iter, seg, tag)
 
-        # toss out old text if the muffer is getting too big
+        # toss out old text if the buffer is getting too big
         num_lines = tb.get_line_count()
         if num_lines > self.stdout_maxlines:
             start_iter = tb.get_start_iter()
