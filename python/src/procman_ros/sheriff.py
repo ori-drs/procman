@@ -567,6 +567,11 @@ class Sheriff:
     def __init__(self):
         """Initialize a new Sheriff object"""
         rospy.init_node("procman_ros_sheriff", anonymous=True)
+
+        self._prev_can_reach_master = True
+        self._ros_master_ip = os.popen("echo $ROS_MASTER_URI").read().split("//")[1].split(":")[0]
+        # print(self._ros_master_ip)
+        
         self.info_sub = rospy.Subscriber(
             "/procman/info", ProcmanDeputyInfo, self._on_pmd_info
         )
@@ -595,6 +600,9 @@ class Sheriff:
         self._lock = threading.Lock()
         self._condvar = threading.Condition(self._lock)
         self._worker_thread_obj.start()
+
+        self._master_reach_check_thread = threading.Thread(target=self._master_reach_check)
+        self._master_reach_check_thread.start()
 
         self._listeners = []
         self._queued_events = []
@@ -1144,6 +1152,29 @@ class Sheriff:
 
                     group = config_obj.get_group(cmd._group, True)
                     group.add_command(cmd_node)
+
+    def _master_reach_check(self):
+
+        while not self._exiting:
+            curr_can_reach_master = False
+            
+            response = os.system("ping -c 1 -w 1 {} >/dev/null 2>&1".format(self._ros_master_ip))
+            if response == 0:
+                curr_can_reach_master = True
+
+            # print('Prev can reach: {}'.format(self._prev_can_reach_master))
+            # print('Curr can reach: {}'.format(curr_can_reach_master))
+            if not self._prev_can_reach_master and curr_can_reach_master:
+                self.info_sub.unregister()
+                self.orders_sub.unregister()
+                self.orders_pub.unregister()
+                self.discover_pub.unregister()
+                self.info_sub = rospy.Subscriber("/procman/info", ProcmanDeputyInfo, self._on_pmd_info)
+                self.orders_sub = rospy.Subscriber("/procman/orders", ProcmanOrders, self._on_pmd_orders)
+                self.orders_pub = rospy.Publisher("/procman/orders", ProcmanOrders, queue_size=10)
+                self.discover_pub = rospy.Publisher("/procman/discover", ProcmanDiscovery, queue_size=10)
+            self._prev_can_reach_master = curr_can_reach_master
+            time.sleep(5)
 
     def _worker_thread(self):
         send_interval = 1.0
