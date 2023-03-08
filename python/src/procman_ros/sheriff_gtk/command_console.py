@@ -20,7 +20,7 @@ ANSI_CODES_TO_TEXT_TAG_PROPERTIES = {
     "30": ("foreground", "black"),
     "31": ("foreground", "red"),
     "32": ("foreground", "green"),
-    "33": ("foreground", "yellow"),
+    "33": ("foreground", "yellow3"),
     "34": ("foreground", "blue"),
     "35": ("foreground", "magenta"),
     "36": ("foreground", "cyan"),
@@ -28,7 +28,7 @@ ANSI_CODES_TO_TEXT_TAG_PROPERTIES = {
     "40": ("background", "black"),
     "41": ("background", "red"),
     "42": ("background", "green"),
-    "43": ("background", "yellow"),
+    "43": ("background", "yellow3"),
     "44": ("background", "blue"),
     "45": ("background", "magenta"),
     "46": ("background", "cyan"),
@@ -198,7 +198,7 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
             end_iter = tb.get_end_iter()
             tb.insert_with_tags(end_iter, seg, tag)
 
-        # toss out old text if the muffer is getting too big
+        # toss out old text if the buffer is getting too big
         num_lines = tb.get_line_count()
         if num_lines > self.stdout_maxlines:
             start_iter = tb.get_start_iter()
