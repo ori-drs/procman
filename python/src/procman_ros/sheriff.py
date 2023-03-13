@@ -572,16 +572,10 @@ class Sheriff:
         self._ros_master_ip = os.popen("echo $ROS_MASTER_URI").read().split("//")[1].split(":")[0]
         # print(self._ros_master_ip)
         
-        self.info_sub = rospy.Subscriber(
-            "/procman/info", ProcmanDeputyInfo, self._on_pmd_info
-        )
-        self.orders_sub = rospy.Subscriber(
-            "/procman/orders", ProcmanOrders, self._on_pmd_orders
-        )
-        self.discover_pub = rospy.Publisher(
-            "/procman/discover", ProcmanDiscovery, queue_size=10
-        )
+        self.info_sub = rospy.Subscriber("/procman/info", ProcmanDeputyInfo, self._on_pmd_info, queue_size=10)
+        self.orders_sub = rospy.Subscriber("/procman/orders", ProcmanOrders, self._on_pmd_orders, queue_size=10)
         self.orders_pub = rospy.Publisher("/procman/orders", ProcmanOrders, queue_size=10)
+        self.discover_pub = rospy.Publisher("/procman/discover", ProcmanDiscovery, queue_size=10)
 
         self._deputies = {}
         self._is_observer = False
@@ -1169,8 +1163,8 @@ class Sheriff:
                 self.orders_sub.unregister()
                 self.orders_pub.unregister()
                 self.discover_pub.unregister()
-                self.info_sub = rospy.Subscriber("/procman/info", ProcmanDeputyInfo, self._on_pmd_info)
-                self.orders_sub = rospy.Subscriber("/procman/orders", ProcmanOrders, self._on_pmd_orders)
+                self.info_sub = rospy.Subscriber("/procman/info", ProcmanDeputyInfo, self._on_pmd_info, queue_size=10)
+                self.orders_sub = rospy.Subscriber("/procman/orders", ProcmanOrders, self._on_pmd_orders, queue_size=10)
                 self.orders_pub = rospy.Publisher("/procman/orders", ProcmanOrders, queue_size=10)
                 self.discover_pub = rospy.Publisher("/procman/discover", ProcmanDiscovery, queue_size=10)
             self._prev_can_reach_master = curr_can_reach_master
