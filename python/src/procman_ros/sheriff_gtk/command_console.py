@@ -222,7 +222,8 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
         )
 
     def _gtk_on_sheriff_command_removed(self, deputy, command):
-        del self._cmd_extradata[command]
+        if command in self._cmd_extradata:
+            del self._cmd_extradata[command]
         self._add_text_to_buffer(
             self.sheriff_tb,
             now_str()

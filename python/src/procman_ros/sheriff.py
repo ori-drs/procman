@@ -1120,8 +1120,9 @@ class Sheriff:
             if self._is_observer:
                 raise ValueError("Can't load config in Observer mode")
 
-            if self._get_all_commands():
-                raise RuntimeError("Remove all commands before loading a config file")
+            for cmd in self._get_all_commands():
+                self._schedule_command_for_removal(cmd)
+            time.sleep(1)
 
             self._add_commands_from_config(config_obj.root_group, "")
 

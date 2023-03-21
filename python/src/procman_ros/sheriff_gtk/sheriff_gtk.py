@@ -541,8 +541,7 @@ class SheriffGtk(SheriffListener):
                 self.sheriff.remove_command(cmd)
             # the remove_command function only schedules commands to be removed, it takes a bit of time for them to
             # actually be removed. All commands must be removed before a config can be loaded
-            import time
-            time.sleep(0.5)
+            time.sleep(1)
 
         self._do_load_config()
 
