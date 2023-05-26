@@ -748,7 +748,7 @@ class Sheriff:
             raise ValueError("Can't send orders in Observer mode")
         for deputy in list(self._deputies.values()):
             # only send orders to a deputy if we've heard from it.
-            if deputy._last_update_utime > 0:
+            if deputy._last_update_utime > 0 and self._prev_can_reach_master:
                 msg = deputy._make_orders_message(self._id)
                 self.orders_pub.publish(msg)
 
