@@ -1,4 +1,6 @@
+import os
 import time
+import threading
 import functools
 
 from gi.repository import GLib
@@ -51,6 +53,10 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
     def __init__(self, _sheriff):
         super(SheriffCommandConsole, self).__init__()
 
+        self._prev_can_reach_master = True
+        self._ros_master_ip = os.popen(
+            "echo $ROS_MASTER_URI").read().split("//")[1].split(":")[0]
+
         self.stdout_maxlines = 250
         self.max_kb_per_sec = 0
         self.max_chars_per_2500_ms = 0
@@ -72,7 +78,8 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
         self.connect("key-release-event", self.on_key_release)
 
         # add callback so we can add a clear option to the default right click popup
-        self.stdout_textview.connect("populate-popup", self.on_tb_populate_menu)
+        self.stdout_textview.connect(
+            "populate-popup", self.on_tb_populate_menu)
 
         # set some default appearance parameters
         self.font_str = "Monospace 10"
@@ -90,7 +97,7 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
         self._cmd_extradata = {}
 
         self.output_sub = rospy.Subscriber(
-            "/procman/output", ProcmanOutput, self.on_procman_output
+            "/procman/output", ProcmanOutput, self.on_procman_output, queue_size=100
         )
 
         self.text_tags = {"normal": Gtk.TextTag.new("normal")}
@@ -99,11 +106,16 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
 
         self.set_output_rate_limit(DEFAULT_MAX_KB_PER_SECOND)
 
+        self._master_reach_check_thread = threading.Thread(
+            target=self._master_reach_check)
+        self._master_reach_check_thread.start()
+
     def command_added(self, deputy_obj, cmd_obj):
         GLib.idle_add(self._gtk_on_sheriff_command_added, deputy_obj, cmd_obj)
 
     def command_removed(self, deputy_obj, cmd_obj):
-        GLib.idle_add(self._gtk_on_sheriff_command_removed, deputy_obj, cmd_obj)
+        GLib.idle_add(self._gtk_on_sheriff_command_removed,
+                      deputy_obj, cmd_obj)
 
     def command_status_changed(self, cmd_obj, old_status, new_status):
         GLib.idle_add(
@@ -134,6 +146,26 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
     def set_font(self, font_str):
         self.font_str = font_str
         self.stdout_textview.modify_font(Pango.FontDescription(font_str))
+
+    def _master_reach_check(self):
+
+        while not self.sheriff._exiting:
+            curr_can_reach_master = False
+
+            response = os.system(
+                "ping -c 1 -w 1 {} >/dev/null 2>&1".format(self._ros_master_ip))
+            if response == 0:
+                curr_can_reach_master = True
+
+            # print('Prev can reach: {}'.format(self._prev_can_reach_master))
+            # print('Curr can reach: {}'.format(curr_can_reach_master))
+            if not self._prev_can_reach_master and curr_can_reach_master:
+                self.output_sub.unregister()
+                self.output_sub = rospy.Subscriber(
+                    "/procman/output", ProcmanOutput, self.on_procman_output, queue_size=100
+                )
+            self._prev_can_reach_master = curr_can_reach_master
+            time.sleep(5)
 
     def _stdout_rate_limit_upkeep(self):
         for cmd in self.sheriff.get_all_commands():
@@ -204,7 +236,8 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
             start_iter = tb.get_start_iter()
             chop_iter = tb.get_iter_at_line(num_lines - self.stdout_maxlines)
             # Must use idle_add here otherwise the output console will not be updated correctly
-            GLib.idle_add(functools.partial(self.del_tb, start_iter, chop_iter))
+            GLib.idle_add(functools.partial(
+                self.del_tb, start_iter, chop_iter))
 
     def del_tb(self, start, chop):
         self.sheriff_tb.delete(start, chop)
@@ -235,7 +268,8 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
     def _gtk_on_command_desired_changed(self, cmd, old_status, new_status):
         self._add_text_to_buffer(
             self.sheriff_tb,
-            now_str() + "[{}] new status: {}\n".format(cmd.command_id, new_status),
+            now_str() +
+            "[{}] new status: {}\n".format(cmd.command_id, new_status),
         )
 
     def on_tb_populate_menu(self, textview, menu):
@@ -309,7 +343,8 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
             adj.set_value(adj.get_upper() - adj.get_page_size())
 
     def on_adj_value_changed(self, adj):
-        adj.scrolled_to_end = adj.get_value() == (adj.get_upper() - adj.get_page_size())
+        adj.scrolled_to_end = adj.get_value() == (
+            adj.get_upper() - adj.get_page_size())
 
     def _handle_command_output(self, command_id, text):
         cmd = self.sheriff.get_command(command_id)
