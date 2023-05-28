@@ -35,31 +35,31 @@ def _now_utime():
     return int(time.time() * 1000000)
 
 
-## \addtogroup python_api
+# \addtogroup python_api
 # @{
 
-## Command status - trying to start
+# Command status - trying to start
 TRYING_TO_START = "Starting (Command Sent)"
 
-## Command status - running
+# Command status - running
 RUNNING = "Running"
 
-## Command status - trying to stop a command
+# Command status - trying to stop a command
 TRYING_TO_STOP = "Stopping (Command Sent)"
 
-## Command status - removing a command
+# Command status - removing a command
 REMOVING = "Removing (Command Sent)"
 
-## Command status - command stopped without error
+# Command status - command stopped without error
 STOPPED_OK = "Stopped (OK)"
 
-## Command status - command stopped with error
+# Command status - command stopped with error
 STOPPED_ERROR = "Stopped (Error)"
 
-## Command status - unknown status
+# Command status - unknown status
 UNKNOWN = "Unknown"
 
-## Command status - restarting a command
+# Command status - restarting a command
 RESTARTING = "Restarting (Command Sent)"
 
 ## @} ##
@@ -569,13 +569,18 @@ class Sheriff:
         rospy.init_node("procman_ros_sheriff", anonymous=True)
 
         self._prev_can_reach_master = True
-        self._ros_master_ip = os.popen("echo $ROS_MASTER_URI").read().split("//")[1].split(":")[0]
+        self._ros_master_ip = os.popen(
+            "echo $ROS_MASTER_URI").read().split("//")[1].split(":")[0]
         # print(self._ros_master_ip)
-        
-        self.info_sub = rospy.Subscriber("/procman/info", ProcmanDeputyInfo, self._on_pmd_info, queue_size=10)
-        self.orders_sub = rospy.Subscriber("/procman/orders", ProcmanOrders, self._on_pmd_orders, queue_size=10)
-        self.orders_pub = rospy.Publisher("/procman/orders", ProcmanOrders, queue_size=10)
-        self.discover_pub = rospy.Publisher("/procman/discover", ProcmanDiscovery, queue_size=10)
+
+        self.info_sub = rospy.Subscriber(
+            "/procman/info", ProcmanDeputyInfo, self._on_pmd_info, queue_size=100)
+        self.orders_sub = rospy.Subscriber(
+            "/procman/orders", ProcmanOrders, self._on_pmd_orders, queue_size=100)
+        self.orders_pub = rospy.Publisher(
+            "/procman/orders", ProcmanOrders, queue_size=100)
+        self.discover_pub = rospy.Publisher(
+            "/procman/discover", ProcmanDiscovery, queue_size=100)
 
         self._deputies = {}
         self._is_observer = False
@@ -595,7 +600,8 @@ class Sheriff:
         self._condvar = threading.Condition(self._lock)
         self._worker_thread_obj.start()
 
-        self._master_reach_check_thread = threading.Thread(target=self._master_reach_check)
+        self._master_reach_check_thread = threading.Thread(
+            target=self._master_reach_check)
         self._master_reach_check_thread.start()
 
         self._listeners = []
@@ -641,7 +647,8 @@ class Sheriff:
 
     def __sheriff_conflict_detected(self, other_sheriff_id):
         self._queued_events.append(
-            lambda listener: listener.sheriff_conflict_detected(other_sheriff_id)
+            lambda listener: listener.sheriff_conflict_detected(
+                other_sheriff_id)
         )
         self._condvar.notify()
 
@@ -741,7 +748,7 @@ class Sheriff:
             raise ValueError("Can't send orders in Observer mode")
         for deputy in list(self._deputies.values()):
             # only send orders to a deputy if we've heard from it.
-            if deputy._last_update_utime > 0 and self._prev_can_reach_master:
+            if deputy._last_update_utime > 0:
                 msg = deputy._make_orders_message(self._id)
                 self.orders_pub.publish(msg)
 
@@ -829,7 +836,8 @@ class Sheriff:
         cmd._start()
         new_status = cmd._status()
         deputy = self._get_command_deputy(cmd)
-        self._maybe_emit_status_change_signals(deputy, ((cmd, old_status, new_status),))
+        self._maybe_emit_status_change_signals(
+            deputy, ((cmd, old_status, new_status),))
         self._send_orders()
 
     def start_command(self, cmd):
@@ -850,7 +858,8 @@ class Sheriff:
         cmd._restart()
         new_status = cmd._status()
         deputy = self._get_command_deputy(cmd)
-        self._maybe_emit_status_change_signals(deputy, ((cmd, old_status, new_status),))
+        self._maybe_emit_status_change_signals(
+            deputy, ((cmd, old_status, new_status),))
         self._send_orders()
 
     def restart_command(self, cmd):
@@ -873,7 +882,8 @@ class Sheriff:
         cmd._stop()
         new_status = cmd._status()
         deputy = self._get_command_deputy(cmd)
-        self._maybe_emit_status_change_signals(deputy, ((cmd, old_status, new_status),))
+        self._maybe_emit_status_change_signals(
+            deputy, ((cmd, old_status, new_status),))
         self._send_orders()
 
     def stop_command(self, cmd):
@@ -1061,7 +1071,8 @@ class Sheriff:
             for cmd in list(deputy._commands.values()):
                 cmd_group_parts = cmd._group.split("/")
                 if len(group_parts) <= len(cmd_group_parts) and all(
-                    [cgp == gp for cgp, gp in zip(group_parts, cmd_group_parts)]
+                    [cgp == gp for cgp, gp in zip(
+                        group_parts, cmd_group_parts)]
                 ):
                     result.append(cmd)
         return result
@@ -1081,7 +1092,8 @@ class Sheriff:
     def _add_commands_from_config(self, group_node, name_prefix):
         result = []
         for cmd_node in group_node.commands:
-            auto_respawn_val = cmd_node.attributes.get("auto_respawn", "").lower()
+            auto_respawn_val = cmd_node.attributes.get(
+                "auto_respawn", "").lower()
             auto_respawn = auto_respawn_val in ["true", "yes"]
             assert group_node.name == cmd_node.attributes["group"]
 
@@ -1152,8 +1164,9 @@ class Sheriff:
 
         while not self._exiting:
             curr_can_reach_master = False
-            
-            response = os.system("ping -c 1 -w 1 {} >/dev/null 2>&1".format(self._ros_master_ip))
+
+            response = os.system(
+                "ping -c 1 -w 1 {} >/dev/null 2>&1".format(self._ros_master_ip))
             if response == 0:
                 curr_can_reach_master = True
 
@@ -1164,10 +1177,14 @@ class Sheriff:
                 self.orders_sub.unregister()
                 self.orders_pub.unregister()
                 self.discover_pub.unregister()
-                self.info_sub = rospy.Subscriber("/procman/info", ProcmanDeputyInfo, self._on_pmd_info, queue_size=10)
-                self.orders_sub = rospy.Subscriber("/procman/orders", ProcmanOrders, self._on_pmd_orders, queue_size=10)
-                self.orders_pub = rospy.Publisher("/procman/orders", ProcmanOrders, queue_size=10)
-                self.discover_pub = rospy.Publisher("/procman/discover", ProcmanDiscovery, queue_size=10)
+                self.info_sub = rospy.Subscriber(
+                    "/procman/info", ProcmanDeputyInfo, self._on_pmd_info, queue_size=100)
+                self.orders_sub = rospy.Subscriber(
+                    "/procman/orders", ProcmanOrders, self._on_pmd_orders, queue_size=100)
+                self.orders_pub = rospy.Publisher(
+                    "/procman/orders", ProcmanOrders, queue_size=100)
+                self.discover_pub = rospy.Publisher(
+                    "/procman/discover", ProcmanDiscovery, queue_size=100)
             self._prev_can_reach_master = curr_can_reach_master
             time.sleep(5)
 
