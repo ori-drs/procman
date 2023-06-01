@@ -1,5 +1,5 @@
-#include <ros/ros.h>
 #include <assert.h>
+#include <stdexcept>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -42,7 +42,7 @@ void Procman::StartCommand(ProcmanCommandPtr cmd) {
     // Command is already running.
     return;
   }
-  ROS_DEBUG("starting [%s]\n", cmd->ExecStr().c_str());
+  //ROS_DEBUG("starting [%s]\n", cmd->ExecStr().c_str());
 
   cmd->PrepareArgsAndEnvironment();
 
@@ -100,20 +100,20 @@ void Procman::StartCommand(ProcmanCommandPtr cmd) {
 
 bool Procman::KillCommand(ProcmanCommandPtr cmd, int signum) {
   if (0 == cmd->Pid()) {
-    ROS_DEBUG ("[%s] has no PID.  not stopping (already dead)\n", cmd->ExecStr().c_str());
+    //ROS_DEBUG ("[%s] has no PID.  not stopping (already dead)\n", cmd->ExecStr().c_str());
     return false;
   }
   // get a list of the process's descendants
   std::vector<int> descendants = GetDescendants(cmd->Pid());
 
-  ROS_DEBUG ("[%s] stop (signal %d)\n", cmd->ExecStr().c_str(), signum);
+  //ROS_DEBUG ("[%s] stop (signal %d)\n", cmd->ExecStr().c_str(), signum);
   if (0 != kill (cmd->Pid(), signum)) {
     return false;
   }
 
   // send the same signal to all of the process's descendants
   for (int child_pid : descendants) {
-    ROS_DEBUG("signal %d to descendant %d\n", signum, child_pid);
+    //ROS_DEBUG("signal %d to descendant %d\n", signum, child_pid);
     kill(child_pid, signum);
 
     auto iter = std::find(cmd->descendants_to_kill_.begin(),
@@ -137,7 +137,7 @@ ProcmanCommandPtr Procman::CheckForStoppedCommands() {
       cmd->SetPid(0);
       cmd->SetExitStatus(exit_status);
 
-      if (WIFSIGNALED (exit_status)) {
+      /*if (WIFSIGNALED (exit_status)) {
         int signum = WTERMSIG (exit_status);
         ROS_DEBUG ("[%s] terminated by signal %d (%s)\n",
             cmd->ExecStr().c_str(), signum, strsignal (signum));
@@ -146,12 +146,12 @@ ProcmanCommandPtr Procman::CheckForStoppedCommands() {
             cmd->ExecStr().c_str(), WEXITSTATUS (exit_status));
       } else {
         ROS_DEBUG ("[%s] exited\n", cmd->ExecStr().c_str());
-      }
+      }*/
 
       // check for and kill orphaned children.
       for (int child_pid : cmd->descendants_to_kill_) {
         if(IsOrphanedChildOf(child_pid, pid)) {
-          ROS_DEBUG("sending SIGKILL to orphan process %d\n", child_pid);
+          //ROS_DEBUG("sending SIGKILL to orphan process %d\n", child_pid);
           kill(child_pid, SIGKILL);
         }
       }
@@ -233,7 +233,7 @@ const std::vector<ProcmanCommandPtr>& Procman::GetCommands() {
 ProcmanCommandPtr Procman::AddCommand(const std::string& exec_str) {
   ProcmanCommandPtr newcmd(new ProcmanCommand(exec_str));
   commands_.push_back(newcmd);
-  ROS_DEBUG("new command [%s]\n", exec_str.c_str());
+  //ROS_DEBUG("new command [%s]\n", exec_str.c_str());
   return newcmd;
 }
 
