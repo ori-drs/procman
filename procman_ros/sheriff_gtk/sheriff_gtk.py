@@ -10,8 +10,8 @@ import time
 import traceback
 
 import gi
-import rospkg
-import rostopic
+import rclpy
+from ament_index_python.packages import get_package_share_directory
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib
@@ -37,15 +37,15 @@ def _dbg(text):
 
 
 def find_procman_glade():
-    rospack = rospkg.RosPack()
     return os.path.join(
-        rospack.get_path("procman_ros"), "python/procman-ros-sheriff.glade"
+        get_package_share_directory("procman_ros"),
+        "procman-ros-sheriff.glade"
     )
 
 def find_icon():
-    rospack = rospkg.RosPack()
     return os.path.join(
-        rospack.get_path("procman_ros"), "doc/images/procman_icon.png"
+        get_package_share_directory("procman_ros"),
+        "doc/images/procman_icon.png"
     )
 
 def split_script_name(name):
@@ -626,7 +626,7 @@ class SheriffGtk(SheriffListener):
     def on_spawn_deputy_mi_activate(self, *args):
         print("Spawn deputy!")
         self._terminate_spawned_deputy()
-        args = ["rosrun", "procman_ros", "deputy", "-i", "localhost"]
+        args = ["ros2", "run", "procman_ros", "deputy", "-i", "localhost"]
         self.spawned_deputy = subprocess.Popen(args)
         # TODO disable
         self.spawn_deputy_mi.set_sensitive(False)
@@ -672,6 +672,7 @@ class SheriffGtk(SheriffListener):
 
 
 def main():
+    rclpy.init()
     parser = argparse.ArgumentParser(
         description="Process management operating console.",
         epilog="If procman_config_file is specified, then the sheriff tries to load "
@@ -753,28 +754,6 @@ def main():
     else:
         cfg = None
 
-    roscore_process = None
-    if args.start_roscore:
-        # Check if roscore is running by looking for the /rosout topic
-        try:
-            rostopic.get_topic_class("/rosout")
-            roscore_running = True
-        except rostopic.ROSTopicIOException as e:
-            roscore_running = False
-
-        if not roscore_running:
-            # Using os.setpgrp, the roscore subprocess becomes detached from the parent process group,
-            # so it no longer receives sigint when we sent ctrl+c on the terminal to kill the sheriff
-            devnull = open(os.devnull, "wb")
-            preexec = os.setpgrp if args.persist_roscore else None
-            roscore_process = subprocess.Popen(
-                "roscore",
-                stdout=devnull,  # TODO should be subprocess.DEVNULL in >3.3
-                stderr=devnull,
-                preexec_fn=preexec,
-            )
-            time.sleep(1)
-
     if args.observer:
         if cfg:
             print(
@@ -824,15 +803,7 @@ def main():
         signal.signal(signal.SIGTERM, lambda *_: Gtk.main_quit())
         signal.signal(signal.SIGHUP, lambda *_: Gtk.main_quit())
 
-        def on_delete(widget=None, *data):
-            """
-            Runs on alt-f4 or close button
-            """
-            if roscore_process:
-                roscore_process.terminate()
-
         gui.window.connect("destroy", Gtk.main_quit)
-        gui.window.connect("delete-event", on_delete)
 
         try:
             Gtk.main()

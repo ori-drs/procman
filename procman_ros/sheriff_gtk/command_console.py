@@ -6,10 +6,11 @@ from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Pango
-import rospy
+import rclpy
+from rclpy.node import Node
 
 from procman_ros.sheriff import SheriffListener
-from procman_ros.msg import ProcmanOutput
+from procman_msgs.msg import ProcmanOutput
 
 DEFAULT_MAX_KB_PER_SECOND = 500
 
@@ -47,9 +48,11 @@ class CommandExtraData:
         self.printf_drop_count = 0
 
 
-class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
+class SheriffCommandConsole(Node, Gtk.ScrolledWindow, SheriffListener):
     def __init__(self, _sheriff):
-        super(SheriffCommandConsole, self).__init__()
+        #super(SheriffCommandConsole, self).__init__()
+        Gtk.ScrolledWindow.__init__(self)
+        Node.__init__(self, 'sheriff_command_console')
 
         self.stdout_maxlines = 250
         self.max_kb_per_sec = 0
@@ -89,8 +92,8 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
 
         self._cmd_extradata = {}
 
-        self.output_sub = rospy.Subscriber(
-            "/procman/output", ProcmanOutput, self.on_procman_output
+        self.output_sub = self.create_subscription(
+            ProcmanOutput, "/procman/output", self.on_procman_output, 10
         )
 
         self.text_tags = {"normal": Gtk.TextTag.new("normal")}

@@ -37,6 +37,22 @@ add_executable(deputy
 target_link_libraries(deputy procman_ros )
 ament_target_dependencies(deputy rclcpp)
 
+####################
+## Installation   ##
+####################
+
+set(targets_list
+  deputy
+  procman_ros
+)
+
+install(
+  TARGETS ${targets_list}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
 #install(FILES python/procman-ros-sheriff.glade
 #        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/python)
 
@@ -46,6 +62,14 @@ ament_target_dependencies(deputy rclcpp)
 install(PROGRAMS
         scripts/sheriff
         DESTINATION lib/${PROJECT_NAME})
+        
+install(PROGRAMS
+        python/procman-ros-sheriff.glade
+        DESTINATION share/${PROJECT_NAME})
+        
+install(PROGRAMS
+        doc/images/procman_icon.png
+        DESTINATION share/${PROJECT_NAME}/doc/images)
 
 ament_package()
 
