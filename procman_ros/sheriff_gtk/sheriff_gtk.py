@@ -813,7 +813,10 @@ def main():
 
         gui.window.connect("destroy", Gtk.main_quit)
 
-        thread = threading.Thread(target=rclpy.spin, args=(gui.sheriff, ), daemon=True)
+        executor = rclpy.executors.MultiThreadedExecutor()
+        executor.add_node(gui.sheriff)
+        executor.add_node(gui.cmd_console)
+        thread = threading.Thread(target=executor.spin, daemon=True)
         thread.start()
 
         try:
