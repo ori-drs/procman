@@ -455,8 +455,8 @@ class Deputy:
         # zeroed clock that can sometimes happen when simulation time is used by ros
         # Not doing this causes issues with the deputy
         secs, nsecs = str(time.time()).split(".")
-        msg.timestamp.secs = int(secs)
-        msg.timestamp.nsecs = int(nsecs)
+        msg.timestamp.sec = int(secs)
+        msg.timestamp.nanosec = int(nsecs)
         msg.deputy_id = self._deputy_id
         msg.ncmds = len(self._commands)
         msg.sheriff_id = sheriff_id
@@ -540,7 +540,6 @@ class SheriffListener:
         """
         return
 
-
 class Sheriff(Node):
     """Controls deputies and processes.
 
@@ -567,8 +566,7 @@ class Sheriff(Node):
 
     def __init__(self):
         """Initialize a new Sheriff object"""
-        super().__init__("procman_ros_sheriff")
-
+        super().__init__('procman_ros_sheriff')
         self._prev_can_reach_master = True
         # self._ros_master_ip = os.popen("echo $ROS_MASTER_URI").read().split("//")[1].split(":")[0]
         # print(self._ros_master_ip)
@@ -687,8 +685,8 @@ class Sheriff(Node):
             self._listeners.remove(sheriff_listener)
 
     def _on_pmd_info(self, msg):
-        now = self.get_clock().now() # time in nanoseconds
-        if (now - msg.timestamp) * 1e-9 > 30 and not self.is_observer():
+        now = self.get_clock().now()
+        if (now.nanoseconds // 10**9 - msg.timestamp.sec) * 1e-9 > 30 and not self.is_observer():
             # ignore old messages, > 30 seconds
             return
 

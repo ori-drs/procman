@@ -8,6 +8,8 @@ import subprocess
 import sys
 import time
 import traceback
+import threading
+import psutil
 
 import gi
 import rclpy
@@ -322,6 +324,12 @@ class SheriffGtk(SheriffListener):
         if self.spawned_deputy:
             try:
                 self.spawned_deputy.terminate()
+                # terminate isn't enough to kill the deputy with ros2, self.spawned_deputy.id is not the correct pid
+                # search for the pid of the deputy
+                for p in psutil.process_iter():
+                    if p.name() == "deputy":
+                        p.terminate()
+                        break
             except AttributeError:  # python 2.4, 2.5 don't have Popen.terminate()
                 os.kill(self.spawned_deputy.pid, signal.SIGTERM)
                 self.spawned_deputy.wait()
@@ -805,11 +813,16 @@ def main():
 
         gui.window.connect("destroy", Gtk.main_quit)
 
+        thread = threading.Thread(target=rclpy.spin, args=(gui.sheriff, ), daemon=True)
+        thread.start()
+
         try:
             Gtk.main()
         except KeyboardInterrupt:
             print("Exiting")
         gui.cleanup(True)
+        rclpy.shutdown()
+        thread.join()
     else:
         if not args.script:
             print("No script specified and running in headless mode.  Exiting")
