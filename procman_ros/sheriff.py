@@ -471,7 +471,7 @@ class Deputy:
             cmd_msg.cmd.group = cmd._group
             cmd_msg.cmd.auto_respawn = cmd._auto_respawn
             cmd_msg.cmd.stop_signal = cmd._stop_signal
-            cmd_msg.cmd.stop_time_allowed = cmd._stop_time_allowed
+            cmd_msg.cmd.stop_time_allowed = float(cmd._stop_time_allowed)
             cmd_msg.desired_runid = cmd._desired_runid
             cmd_msg.force_quit = cmd._force_quit
             msg.cmds.append(cmd_msg)
