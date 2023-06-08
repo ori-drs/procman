@@ -97,7 +97,7 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
         self._cmd_extradata = {}
 
         self.output_sub = rospy.Subscriber(
-            "/procman/output", ProcmanOutput, self.on_procman_output, queue_size=100
+            "/procman/output", ProcmanOutput, self.on_procman_output, queue_size=10
         )
 
         self.text_tags = {"normal": Gtk.TextTag.new("normal")}
@@ -162,7 +162,7 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
             if not self._prev_can_reach_master and curr_can_reach_master:
                 self.output_sub.unregister()
                 self.output_sub = rospy.Subscriber(
-                    "/procman/output", ProcmanOutput, self.on_procman_output, queue_size=100
+                    "/procman/output", ProcmanOutput, self.on_procman_output, queue_size=10
                 )
             self._prev_can_reach_master = curr_can_reach_master
             time.sleep(5)
