@@ -7,7 +7,7 @@
 
 # Also sent when the deputy itself has something to say.
 
-time timestamp
+builtin_interfaces/Time timestamp
 
 # Which deputy sent this message.
 string deputy_id
