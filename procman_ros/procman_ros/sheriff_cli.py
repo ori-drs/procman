@@ -70,7 +70,7 @@ class SheriffHeadless(ScriptListener):
 
         # start a local deputy?
         if self.spawn_deputy:
-            args = ["rosrun", "procman_ros", "deputy", "-i", "localhost"]
+            args = ["ros2", "run", "procman_ros", "deputy", "-i", "localhost"]
             self.spawned_deputy = subprocess.Popen(args)
         else:
             self.spawned_deputy = None

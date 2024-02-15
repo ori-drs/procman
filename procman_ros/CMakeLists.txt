@@ -10,15 +10,10 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+find_package(procman_ros_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
-find_package(std_msgs REQUIRED)
-
-# ## Uncomment this if the package has a setup.py. This macro ensures
-# ## modules and global scripts declared therein get installed
-# ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
-# 
 
 include_directories(include)
 
@@ -29,37 +24,44 @@ else()
 endif()
 
 add_library(procman_ros SHARED src/procman/exec_string_utils.cpp
-                          src/procman/${procinfo_cpp}
-                          src/procman/procman.cpp)
-# target_link_libraries(procman_ros util)
+                               src/procman/${procinfo_cpp}
+                               src/procman/procman.cpp)
+ament_target_dependencies(procman_ros procman_ros_msgs)
 
-# 
-# add_executable(deputy
-#                src/procman_ros/socket_monitor.cpp
-#                src/procman_ros/procman_deputy.cpp)
-# 
-# target_link_libraries(deputy procman_ros ${catkin_LIBRARIES})
-# 
-# add_dependencies(deputy ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-# 
+add_executable(deputy
+               src/procman_ros/socket_monitor.cpp
+               src/procman_ros/procman_deputy.cpp)
+ament_target_dependencies(deputy procman_ros_msgs rclcpp)
+target_link_libraries(deputy procman_ros)
+
 # ## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#    FILES_MATCHING PATTERN "*.hpp")
-# 
-# install(TARGETS deputy procman_ros
-#         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
-# 
-# install(FILES python/procman-ros-sheriff.glade
-#         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/python)
-# 
-# install(FILES doc/images/procman_icon.png
-#         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/doc/images)
-# 
-# catkin_install_python(PROGRAMS scripts/sheriff
-#                       DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(DIRECTORY include/
+   DESTINATION include
+   FILES_MATCHING PATTERN "*.hpp")
 
+install(TARGETS
+  procman_ros
+  DESTINATION lib
+)
+
+install(TARGETS deputy 
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
+
+# Install Python executables
+install(PROGRAMS
+  scripts/sheriff
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(FILES procman_ros/procman-ros-sheriff.glade
+        DESTINATION share/procman_ros)
+ 
+install(FILES doc/images/procman_icon.png
+        DESTINATION share/${PROJECT_NAME}/doc/images)
 
 ament_export_include_directories(include)
 # ament_export_libraries(procman_ros)

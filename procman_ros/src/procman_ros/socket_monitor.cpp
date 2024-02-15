@@ -1,6 +1,5 @@
 #include "procman_ros/socket_monitor.hpp"
 
-#include <ros/ros.h>
 #include <assert.h>
 #include <fcntl.h>
 #include <poll.h>
@@ -49,11 +48,11 @@ SocketNotifier::SocketNotifier(int fd, SocketMonitor::EventType event_type,
 }
 
 SocketNotifier::~SocketNotifier() {
-  ROS_DEBUG("Destroying socket notifier %p for %d\n", this, fd_);
+  printf("[DEBUG] Destroying socket notifier %p for %d\n", this, fd_);
 
   auto iter = std::find(loop_->sockets_.begin(), loop_->sockets_.end(), this);
   if (iter != loop_->sockets_.end()) {
-    ROS_DEBUG("found in sockets_\n");
+    printf("[DEBUG] found in sockets_\n");
     loop_->sockets_.erase(iter);
   }
 
@@ -154,7 +153,7 @@ void SocketMonitor::IterateOnce() {
     for (int index = 0; index < num_sockets; ++index) {
       struct pollfd* pfd = &pfds[index];
       if (pfd->revents & pfd->events) {
-        ROS_DEBUG("marking socket notifier %p (%d) for callback",
+        printf("[DEBUG] marking socket notifier %p (%d) for callback",
             sockets_[index], pfd->fd);
         sockets_ready_.push_back(sockets_[index]);
       }

@@ -8,10 +8,11 @@ from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Pango
-import rospy
 
 from procman_ros.sheriff import SheriffListener
-from procman_ros.msg import ProcmanOutput
+from procman_ros_msgs.msg import ProcmanOutput
+
+from rclpy.node import Node
 
 DEFAULT_MAX_KB_PER_SECOND = 500
 
@@ -54,8 +55,8 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
         super(SheriffCommandConsole, self).__init__()
 
         self._prev_can_reach_master = True
-        self._ros_master_ip = os.popen(
-            "echo $ROS_MASTER_URI").read().split("//")[1].split(":")[0]
+        # self._ros_master_ip = os.popen(
+        #     "echo $ROS_MASTER_URI").read().split("//")[1].split(":")[0]
 
         self.stdout_maxlines = 250
         self.max_kb_per_sec = 0
@@ -96,9 +97,9 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
 
         self._cmd_extradata = {}
 
-        self.output_sub = rospy.Subscriber(
-            "/procman/output", ProcmanOutput, self.on_procman_output, queue_size=10
-        )
+        self.nh = Node("procman_ros_sheriff")
+        self.output_sub = self.nh.create_subscription(
+            ProcmanOutput, "/procman/output", self.on_procman_output, 10)
 
         self.text_tags = {"normal": Gtk.TextTag.new("normal")}
         for tt in list(self.text_tags.values()):
@@ -150,19 +151,20 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
     def _master_reach_check(self):
 
         while not self.sheriff._exiting:
-            curr_can_reach_master = False
+            curr_can_reach_master = True # no roscore in ros2
 
-            response = os.system(
-                "ping -c 1 -w 1 {} >/dev/null 2>&1".format(self._ros_master_ip))
-            if response == 0:
-                curr_can_reach_master = True
+            # no roscore in ros2
+            # response = os.system(
+            #     "ping -c 1 -w 1 {} >/dev/null 2>&1".format(self._ros_master_ip))
+            # if response == 0:
+            #     curr_can_reach_master = True
 
             # print('Prev can reach: {}'.format(self._prev_can_reach_master))
             # print('Curr can reach: {}'.format(curr_can_reach_master))
             if not self._prev_can_reach_master and curr_can_reach_master:
                 self.output_sub.unregister()
-                self.output_sub = rospy.Subscriber(
-                    "/procman/output", ProcmanOutput, self.on_procman_output, queue_size=10
+                self.output_sub = self.nh.create_subscriber(
+                    ProcmanOutput, "/procman/output", self.on_procman_output, queue_size=10
                 )
             self._prev_can_reach_master = curr_can_reach_master
             time.sleep(5)

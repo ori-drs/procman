@@ -1,17 +1,18 @@
 #ifndef PROCMAN_PROCMAN_DEPUTY_HPP__
 #define PROCMAN_PROCMAN_DEPUTY_HPP__
 
+#include <rclcpp/rclcpp.hpp>
 #include <set>
 #include <string>
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
 #include "procman_ros/socket_monitor.hpp"
 #include "procman/procman.hpp"
-#include <procman_ros/ProcmanOrders.h>
-#include <procman_ros/ProcmanDiscovery.h>
-#include <procman_ros/ProcmanDeputyInfo.h>
-#include <procman_ros/ProcmanOutput.h>
-#include "std_msgs/String.h"
+#include <procman_ros_msgs/msg/procman_orders.hpp>
+#include <procman_ros_msgs/msg/procman_discovery.hpp>
+#include <procman_ros_msgs/msg/procman_deputy_info.hpp>
+#include <procman_ros_msgs/msg/procman_output.hpp>
+#include <std_msgs/msg/string.hpp>
 
 namespace procman {
 
@@ -26,23 +27,23 @@ struct DeputyOptions {
 
 class ProcmanDeputy {
   public:
-    ProcmanDeputy(const DeputyOptions& options);
+    ProcmanDeputy(const DeputyOptions& options, rclcpp::Node::SharedPtr nh);
     ~ProcmanDeputy();
 
     void Run();
 
   private:
-    void OrdersReceived(const procman_ros::ProcmanOrdersConstPtr& orders);
-    void DiscoveryReceived(const procman_ros::ProcmanDiscoveryConstPtr& msg);
-    void InfoReceived(const procman_ros::ProcmanDeputyInfoConstPtr& msg);
+    void OrdersReceived(const procman_ros_msgs::msg::ProcmanOrders::SharedPtr orders);
+    void DiscoveryReceived(const procman_ros_msgs::msg::ProcmanDiscovery::SharedPtr msg);
+    void InfoReceived(const procman_ros_msgs::msg::ProcmanDeputyInfo::SharedPtr msg);
 
-    void OnDiscoveryTimer(const ros::WallTimerEvent& event);
+    void OnDiscoveryTimer();
 
-    void OnOneSecondTimer(const ros::WallTimerEvent& event);
+    void OnOneSecondTimer();
 
-    void OnIntrospectionTimer(const ros::WallTimerEvent& event);
+    void OnIntrospectionTimer();
 
-    void OnQuitTimer(const ros::WallTimerEvent& event);
+    void OnQuitTimer();
 
     void OnPosixSignal(int signum);
 
@@ -64,7 +65,7 @@ class ProcmanDeputy {
 
     void PrintfAndTransmit(const std::string& command_id, const char *fmt, ...);
 
-    void MaybePublishOutputMessage(const ros::WallTimerEvent& event);
+    void MaybePublishOutputMessage();
 
     void ProcessSockets();
 
@@ -83,22 +84,21 @@ class ProcmanDeputy {
     int64_t deputy_start_time_;
     pid_t deputy_pid_;
 
-    ros::Subscriber discovery_sub_;
-    ros::Subscriber info_sub_;
-    ros::Subscriber orders_sub_;
+    rclcpp::Subscription<procman_ros_msgs::msg::ProcmanDiscovery>::SharedPtr discovery_sub_;
+    rclcpp::Subscription<procman_ros_msgs::msg::ProcmanDeputyInfo>::SharedPtr info_sub_;
+    rclcpp::Subscription<procman_ros_msgs::msg::ProcmanOrders>::SharedPtr orders_sub_;
 
-    ros::Publisher info_pub_;
-    ros::Publisher discover_pub_;
-    ros::Publisher output_pub_;
+    rclcpp::Publisher<procman_ros_msgs::msg::ProcmanDeputyInfo>::SharedPtr info_pub_;
+    rclcpp::Publisher<procman_ros_msgs::msg::ProcmanDiscovery>::SharedPtr discover_pub_;
+    rclcpp::Publisher<procman_ros_msgs::msg::ProcmanOutput>::SharedPtr output_pub_;
 
+    rclcpp::Node::SharedPtr nh_;
 
-    ros::NodeHandle nh_;
-
-    ros::WallTimer discovery_timer_;
-    ros::WallTimer one_second_timer_;
-    ros::WallTimer introspection_timer_;
-    ros::WallTimer quit_timer_;
-    ros::WallTimer check_output_msg_timer_;
+    rclcpp::TimerBase::SharedPtr discovery_timer_;
+    rclcpp::TimerBase::SharedPtr one_second_timer_;
+    rclcpp::TimerBase::SharedPtr introspection_timer_;
+    rclcpp::TimerBase::SharedPtr quit_timer_;
+    rclcpp::TimerBase::SharedPtr check_output_msg_timer_;
 
     std::map<ProcmanCommandPtr, DeputyCommand*> commands_;
 
@@ -106,7 +106,7 @@ class ProcmanDeputy {
 
     int64_t last_output_transmit_utime_;
     int output_buf_size_;
-    procman_ros::ProcmanOutput output_msg_;
+    procman_ros_msgs::msg::ProcmanOutput output_msg_;
 };
 
 }  // namespace procman
