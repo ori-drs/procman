@@ -79,7 +79,7 @@ struct DeputyCommand {
   int respawn_backoff_ms;
 
   int stop_signal;
-  float stop_time_allowed;
+  int stop_time_allowed;
 
   int num_kills_sent;
   int64_t first_kill_time;
@@ -690,7 +690,7 @@ void ProcmanDeputy::OrdersReceived(const ProcmanOrders::SharedPtr orders) {
 
     // change the stop time allowed of a command?
     if (deputy_cmd->stop_time_allowed != cmd_msg.cmd.stop_time_allowed) {
-      printf("[DEBUG] [%s] stop time allowed -> [%f]\n", deputy_cmd->cmd_id.c_str(),
+      printf("[DEBUG] [%s] stop time allowed -> [%d]\n", deputy_cmd->cmd_id.c_str(),
                 cmd_msg.cmd.stop_time_allowed);
       deputy_cmd->stop_time_allowed = cmd_msg.cmd.stop_time_allowed;
     }
@@ -913,13 +913,15 @@ int main(int argc, char **argv) {
     setlinebuf(stderr);
   }
 
-  // set deputy hostname to the system hostname
-  if (!deputy_id_override.empty()) {
-    dep_options.deputy_id = deputy_id_override +  + "_" + std::to_string(rclcpp::Clock().now().nanoseconds());
+  // set deputy hostname to the system hostname if no input argument given
+  if (deputy_id_override.empty()) {
+    dep_options.deputy_id = dep_options.deputy_id +  + "_" + std::to_string(rclcpp::Clock().now().nanoseconds());
+  } else {
+    dep_options.deputy_id = deputy_id_override;
   }
 
   rclcpp::init(argc, argv);
-  rclcpp::Node::SharedPtr nh;
+  rclcpp::Node::SharedPtr nh = rclcpp::Node::make_shared("procman_ros_deputy_" + dep_options.deputy_id);
   try {
     nh = rclcpp::Node::make_shared("procman_ros_deputy_" + dep_options.deputy_id);
   } catch (rclcpp::exceptions::InvalidNodeNameError e) {

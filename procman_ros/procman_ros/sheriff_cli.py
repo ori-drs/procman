@@ -13,8 +13,8 @@ import procman_ros.sheriff as sheriff
 
 
 class SheriffHeadless(ScriptListener):
-    def __init__(self, config, spawn_deputy, script_name, script_done_action):
-        self.sheriff = Sheriff()
+    def __init__(self, config, spawn_deputy, script_name, script_done_action, nh):
+        self.sheriff = Sheriff(nh)
         self.script_manager = ScriptManager(self.sheriff)
         self.spawn_deputy = spawn_deputy
         self.spawned_deputy = None

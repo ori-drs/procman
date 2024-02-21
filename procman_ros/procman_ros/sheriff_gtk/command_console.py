@@ -51,7 +51,7 @@ class CommandExtraData:
 
 
 class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
-    def __init__(self, _sheriff):
+    def __init__(self, _sheriff, nh):
         super(SheriffCommandConsole, self).__init__()
 
         self._prev_can_reach_master = True
@@ -97,7 +97,7 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
 
         self._cmd_extradata = {}
 
-        self.nh = Node("procman_ros_sheriff")
+        self.nh = nh
         self.output_sub = self.nh.create_subscription(
             ProcmanOutput, "/procman/output", self.on_procman_output, 10)
 

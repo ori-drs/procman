@@ -19,12 +19,10 @@ from procman_ros_msgs.msg import ProcmanDiscovery
 
 import procman_ros.sheriff_config as sheriff_config
 
-from rclpy.node import Node
 from builtin_interfaces.msg import Time
 
 def _dbg(text):
     return
-
 
 #    sys.stderr.write("{}\n".format(text))
 
@@ -567,10 +565,9 @@ class Sheriff:
     add_listener().
     """
 
-    def __init__(self):
+    def __init__(self, nh):
         """Initialize a new Sheriff object"""
-        rclpy.init() # "procman_ros_sheriff", anonymous=True)
-        self.nh = Node("procman_ros_sheriff")
+        self.nh = nh
 
         self._prev_can_reach_master = True
         # no roscore in ros2
@@ -578,7 +575,6 @@ class Sheriff:
         #    "echo $ROS_MASTER_URI").read().split("//")[1].split(":")[0]
         #print(self._ros_master_ip)
 
-        print("CREATED SUBSCRIBER FOR /procman/info")
         self.info_sub = self.nh.create_subscription(
             ProcmanDeputyInfo, "/procman/info", self._on_pmd_info, 10)
         self.orders_sub = self.nh.create_subscription(
@@ -612,8 +608,6 @@ class Sheriff:
 
         self._listeners = []
         self._queued_events = []
-
-        # rclpy.spin(self.nh)
 
     def _get_or_make_deputy(self, deputy_id):
         # _lock should already be acquired

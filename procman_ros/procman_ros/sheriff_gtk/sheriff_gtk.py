@@ -11,6 +11,8 @@ import traceback
 
 import gi
 import rospkg
+import rclpy
+from rclpy.node import Node
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import GLib
@@ -30,6 +32,8 @@ import procman_ros.sheriff_gtk.command_console as cc
 import procman_ros.sheriff_gtk.deputies_treeview as ht
 
 from ament_index_python.packages import get_package_share_directory
+
+import threading
 
 def _dbg(text):
     #    return
@@ -52,7 +56,7 @@ def split_script_name(name):
 
 
 class SheriffGtk(SheriffListener):
-    def __init__(self):
+    def __init__(self, nh):
         self.cmds_update_scheduled = False
         self.config_filename = None
         self.script_done_action = None
@@ -61,7 +65,8 @@ class SheriffGtk(SheriffListener):
         self.spawned_deputy = None
 
         # create sheriff and subscribe to events
-        self.sheriff = Sheriff()
+        self.nh = nh
+        self.sheriff = Sheriff(self.nh)
         self.sheriff.add_listener(self)
 
         self.script_manager = ScriptManager(self.sheriff)
@@ -161,7 +166,7 @@ class SheriffGtk(SheriffListener):
         GObject.timeout_add(1000, lambda *_: self.deputies_ts.update() or True)
 
         # stdout textview
-        self.cmd_console = cc.SheriffCommandConsole(self.sheriff)
+        self.cmd_console = cc.SheriffCommandConsole(self.sheriff, self.nh)
         vpane.add2(self.cmd_console)
 
         # status bar
@@ -750,6 +755,15 @@ def main():
     else:
         cfg = None
 
+
+    # create ros nodehandle - this needs to run in a different thread to the Gtk window
+    # otherwise they block each other.
+    rclpy.init() # @TODO: Make anonymous
+    nh = Node("procman_ros_sheriff")
+    thread = threading.Thread(target=rclpy.spin, args=(nh,))
+    thread.daemon = True
+    thread.start()
+
     # remove this - there's no roscore in ros2.
     roscore_running = True   
     # roscore_process = None
@@ -787,7 +801,7 @@ def main():
             sys.exit(1)
 
     if args.use_gui:
-        gui = SheriffGtk()
+        gui = SheriffGtk(nh)
         if args.observer:
             gui.sheriff.set_observer(True)
         if args.spawn_deputy:
@@ -843,9 +857,8 @@ def main():
             print("No script specified and running in headless mode.  Exiting")
             sys.exit(1)
         SheriffHeadless(
-            cfg, args.spawn_deputy, args.script, args.script_done_action
+            cfg, args.spawn_deputy, args.script, args.script_done_action, nh
         ).run()
-
 
 if __name__ == "__main__":
     main()
