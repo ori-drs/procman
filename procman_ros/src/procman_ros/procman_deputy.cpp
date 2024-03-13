@@ -244,7 +244,7 @@ void ProcmanDeputy::OnProcessOutputAvailable(DeputyCommand *deputy_cmd) {
 void ProcmanDeputy::MaybeScheduleRespawn(DeputyCommand *deputy_cmd) {
   if (deputy_cmd->auto_respawn && deputy_cmd->should_be_running) {
     // deputy_cmd->respawn_timer->setPeriod(
-    //     rclcpp::Duration(deputy_cmd->respawn_backoff_ms / 1000));
+    //             std::chrono::milliseconds(deputy_cmd->respawn_backoff_ms));
     deputy_cmd->respawn_timer->reset();
   }
 }
@@ -263,11 +263,11 @@ int ProcmanDeputy::StartCommand(DeputyCommand *deputy_cmd, int desired_runid) {
 
   // update the respawn backoff counter, to throttle how quickly a
   // process respawns
-  int ms_since_started = (timestamp_now() - deputy_cmd->last_start_time) / 1000;
+  int ms_since_started = (timestamp_now() - deputy_cmd->last_start_time) / 1000.0;
   if (ms_since_started < MAX_RESPAWN_DELAY_MS) {
     deputy_cmd->respawn_backoff_ms =
-        std::min(MAX_RESPAWN_DELAY_MS / 1000,
-                 deputy_cmd->respawn_backoff_ms * RESPAWN_BACKOFF_RATE / 1000);
+        std::min(MAX_RESPAWN_DELAY_MS / 1000.0,
+                 deputy_cmd->respawn_backoff_ms * RESPAWN_BACKOFF_RATE / 1000.0);
   } else {
     int d = ms_since_started / MAX_RESPAWN_DELAY_MS;
     deputy_cmd->respawn_backoff_ms = std::max(MIN_RESPAWN_DELAY_MS / 1000,
@@ -636,7 +636,7 @@ void ProcmanDeputy::OrdersReceived(const ProcmanOrders::SharedPtr orders) {
       deputy_cmd->actual_runid = 0;
 
       deputy_cmd->respawn_timer = nh_->create_wall_timer(
-          std::chrono::seconds(MIN_RESPAWN_DELAY_MS / 1000),
+          std::chrono::milliseconds(MIN_RESPAWN_DELAY_MS / 1000),
           [this, deputy_cmd]() {
             if (deputy_cmd->auto_respawn && deputy_cmd->should_be_running &&
                 !exiting_) {

@@ -602,9 +602,10 @@ class Sheriff:
         self._condvar = threading.Condition(self._lock)
         self._worker_thread_obj.start()
 
-        self._master_reach_check_thread = threading.Thread(
-            target=self._master_reach_check)
-        self._master_reach_check_thread.start()
+        # no roscore in ros2
+        # self._master_reach_check_thread = threading.Thread(
+        #     target=self._master_reach_check)
+        # self._master_reach_check_thread.start()
 
         self._listeners = []
         self._queued_events = []

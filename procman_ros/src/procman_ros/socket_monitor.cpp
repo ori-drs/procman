@@ -52,7 +52,6 @@ SocketNotifier::~SocketNotifier() {
 
   auto iter = std::find(loop_->sockets_.begin(), loop_->sockets_.end(), this);
   if (iter != loop_->sockets_.end()) {
-    printf("[DEBUG] found in sockets_\n");
     loop_->sockets_.erase(iter);
   }
 
@@ -153,8 +152,8 @@ void SocketMonitor::IterateOnce() {
     for (int index = 0; index < num_sockets; ++index) {
       struct pollfd* pfd = &pfds[index];
       if (pfd->revents & pfd->events) {
-        printf("[DEBUG] marking socket notifier %p (%d) for callback",
-            sockets_[index], pfd->fd);
+        // printf("[DEBUG] marking socket notifier %p (%d) for callback",
+        //     sockets_[index], pfd->fd);
         sockets_ready_.push_back(sockets_[index]);
       }
     }
