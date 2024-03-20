@@ -73,7 +73,7 @@ void Procman::StartCommand(ProcmanCommandPtr cmd) {
 
     char ebuf[1024];
     snprintf (ebuf, sizeof(ebuf), "%s", strerror(errno));
-    fprintf(stderr, "ERRROR executing [%s]\n", cmd->ExecStr().c_str());
+    fprintf(stderr, "ERROR executing [%s]\n", cmd->ExecStr().c_str());
     fprintf(stderr, "       execv: %s\n", ebuf);
 
     // if execv returns, the command did not execute successfully
