@@ -27,6 +27,7 @@ add_library(procman_ros SHARED src/procman/exec_string_utils.cpp
                                src/procman/${procinfo_cpp}
                                src/procman/procman.cpp)
 ament_target_dependencies(procman_ros procman_ros_msgs)
+target_link_libraries(procman_ros util)
 
 add_executable(deputy
                src/procman_ros/socket_monitor.cpp
