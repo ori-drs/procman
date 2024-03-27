@@ -17,5 +17,5 @@ int8 stop_signal
 
 # How much time (seconds) to allow the command to gracefully terminate,
 # when stopping the command, before issuing a SIGKILL.
-float32 stop_time_allowed
+int8 stop_time_allowed
 

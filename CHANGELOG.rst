@@ -2,7 +2,10 @@
 Changelog for package procman_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.0 (2024-02-16)
+------------------
 
+* Upgrade from ROS1 noetic to ROS2 humble
 
 0.1.7 (2022-10-27)
 ------------------

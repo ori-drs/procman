@@ -2,7 +2,7 @@
 # sheriff.  informs the sheriff of the status of processes running on the
 # host managed by the deputy.
 
-time timestamp
+builtin_interfaces/Time timestamp
 string deputy_id
 
 # [0, 1]

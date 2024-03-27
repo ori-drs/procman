@@ -8,21 +8,21 @@ import sys
 import time
 import signal
 import threading
-import rospy
+import rclpy
 
-from procman_ros.msg import ProcmanCmd
-from procman_ros.msg import ProcmanDeputyInfo
-from procman_ros.msg import ProcmanOrders
-from procman_ros.msg import ProcmanCmdDesired
-from procman_ros.msg import ProcmanCmdStatus
-from procman_ros.msg import ProcmanDiscovery
+from procman_ros_msgs.msg import ProcmanCmd
+from procman_ros_msgs.msg import ProcmanDeputyInfo
+from procman_ros_msgs.msg import ProcmanOrders
+from procman_ros_msgs.msg import ProcmanCmdDesired
+from procman_ros_msgs.msg import ProcmanCmdStatus
+from procman_ros_msgs.msg import ProcmanDiscovery
 
 import procman_ros.sheriff_config as sheriff_config
 
+from builtin_interfaces.msg import Time
 
 def _dbg(text):
     return
-
 
 #    sys.stderr.write("{}\n".format(text))
 
@@ -453,9 +453,10 @@ class Deputy:
         # Must use python's built in time to get wall clock time, as we want to ignore the
         # zeroed clock that can sometimes happen when simulation time is used by ros
         # Not doing this causes issues with the deputy
-        secs, nsecs = str(time.time()).split(".")
-        msg.timestamp.secs = int(secs)
-        msg.timestamp.nsecs = int(nsecs)
+        current_time = time.time()
+        secs = int(current_time)
+        nsecs = int((current_time - secs) * 1e9)  # Convert fractional seconds to nanoseconds
+        msg.timestamp = Time(sec=secs, nanosec=nsecs)
         msg.deputy_id = self._deputy_id
         msg.ncmds = len(self._commands)
         msg.sheriff_id = sheriff_id
@@ -564,23 +565,24 @@ class Sheriff:
     add_listener().
     """
 
-    def __init__(self):
+    def __init__(self, nh):
         """Initialize a new Sheriff object"""
-        rospy.init_node("procman_ros_sheriff", anonymous=True)
+        self.nh = nh
 
         self._prev_can_reach_master = True
-        self._ros_master_ip = os.popen(
-            "echo $ROS_MASTER_URI").read().split("//")[1].split(":")[0]
-        # print(self._ros_master_ip)
+        # no roscore in ros2
+        #self._ros_master_ip = os.popen(
+        #    "echo $ROS_MASTER_URI").read().split("//")[1].split(":")[0]
+        #print(self._ros_master_ip)
 
-        self.info_sub = rospy.Subscriber(
-            "/procman/info", ProcmanDeputyInfo, self._on_pmd_info, queue_size=10)
-        self.orders_sub = rospy.Subscriber(
-            "/procman/orders", ProcmanOrders, self._on_pmd_orders, queue_size=10)
-        self.orders_pub = rospy.Publisher(
-            "/procman/orders", ProcmanOrders, queue_size=10)
-        self.discover_pub = rospy.Publisher(
-            "/procman/discover", ProcmanDiscovery, queue_size=10)
+        self.info_sub = self.nh.create_subscription(
+            ProcmanDeputyInfo, "/procman/info", self._on_pmd_info, 10)
+        self.orders_sub = self.nh.create_subscription(
+            ProcmanOrders, "/procman/orders", self._on_pmd_orders, 10)
+        self.orders_pub = self.nh.create_publisher(
+            ProcmanOrders, "/procman/orders", 10)
+        self.discover_pub = self.nh.create_publisher(
+            ProcmanDiscovery, "/procman/discover", 10)
 
         self._deputies = {}
         self._is_observer = False
@@ -588,7 +590,7 @@ class Sheriff:
 
         # publish a discovery message to query for existing deputies
         discover_msg = ProcmanDiscovery()
-        discover_msg.timestamp = _now_utime()
+        discover_msg.timestamp = self.nh.get_clock().now().to_msg()
         discover_msg.transmitter_id = self._id
         discover_msg.nonce = 0
         self.discover_pub.publish(discover_msg)
@@ -600,9 +602,10 @@ class Sheriff:
         self._condvar = threading.Condition(self._lock)
         self._worker_thread_obj.start()
 
-        self._master_reach_check_thread = threading.Thread(
-            target=self._master_reach_check)
-        self._master_reach_check_thread.start()
+        # no roscore in ros2
+        # self._master_reach_check_thread = threading.Thread(
+        #     target=self._master_reach_check)
+        # self._master_reach_check_thread.start()
 
         self._listeners = []
         self._queued_events = []
@@ -692,12 +695,15 @@ class Sheriff:
             self._listeners.remove(sheriff_listener)
 
     def _on_pmd_info(self, msg):
-        now = rospy.Time.now()
-        if (now - msg.timestamp) * 1e-6 > rospy.Duration(30) and not self.is_observer():
+        now = self.nh.get_clock().now()
+        msg_time = rclpy.time.Time.from_msg(msg.timestamp)
+        if (now - msg_time) > rclpy.duration.Duration(seconds=30) and not self.is_observer():
             # ignore old messages
+            print("ignore old messages")
             return
 
         #        _dbg("received pmd info from [{}]".format(msg.deputy_id))
+        print("received pmd info from [{}]".format(msg.deputy_id))
 
         with self._lock:
             deputy = self._get_or_make_deputy(msg.deputy_id)
@@ -1163,28 +1169,32 @@ class Sheriff:
     def _master_reach_check(self):
 
         while not self._exiting:
-            curr_can_reach_master = False
+            # no roscore in ros2
+            curr_can_reach_master = True
 
-            response = os.system(
-                "ping -c 1 -w 1 {} >/dev/null 2>&1".format(self._ros_master_ip))
-            if response == 0:
-                curr_can_reach_master = True
+            # no roscore in ros2
+            # response = os.system(
+            #     "ping -c 1 -w 1 {} >/dev/null 2>&1".format(self._ros_master_ip))
+            # if response == 0:
+            #     curr_can_reach_master = True
 
             # print('Prev can reach: {}'.format(self._prev_can_reach_master))
             # print('Curr can reach: {}'.format(curr_can_reach_master))
             if not self._prev_can_reach_master and curr_can_reach_master:
+                print("UNREGISTERING")
                 self.info_sub.unregister()
                 self.orders_sub.unregister()
                 self.orders_pub.unregister()
                 self.discover_pub.unregister()
-                self.info_sub = rospy.Subscriber(
-                    "/procman/info", ProcmanDeputyInfo, self._on_pmd_info, queue_size=10)
-                self.orders_sub = rospy.Subscriber(
-                    "/procman/orders", ProcmanOrders, self._on_pmd_orders, queue_size=10)
-                self.orders_pub = rospy.Publisher(
-                    "/procman/orders", ProcmanOrders, queue_size=10)
-                self.discover_pub = rospy.Publisher(
-                    "/procman/discover", ProcmanDiscovery, queue_size=10)
+                print("RE-REGISTERING")
+                self.info_sub = self.nh.create_subscription(
+                    ProcmanDeputyInfo, "/procman/info", self._on_pmd_info, 10)
+                self.orders_sub = self.nh.create_subscription(
+                    ProcmanOrders, "/procman/orders", self._on_pmd_orders, 10)
+                self.orders_pub = self.nh.create_publisher(
+                    ProcmanOrders, "/procman/orders", 10)
+                self.discover_pub = self.nh.create_publisher(
+                    ProcmanDiscovery, "/procman/discover", 10)
             self._prev_can_reach_master = curr_can_reach_master
             time.sleep(5)
 

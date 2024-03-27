@@ -1,14 +1,20 @@
 <package format="3">
-  <name>procman_ros</name>
-  <version>0.1.7</version>
+  <name>procman_ros_msgs</name>
+  <version>0.2.0</version>
   <description>Procman-ros is a tool for managing many processes distributed over one or more computers using ROS message passing. It is a fork of github.com/ashuang/procman.</description>
   <maintainer email="mcamurri@robots.ox.ac.uk">Marco Camurri</maintainer>
   <maintainer email="michal@robots.ox.ac.uk">Michal Staniaszek</maintainer>
   <license>BSD-3</license>
-  <buildtool_depend>catkin</buildtool_depend>
-  <depend>rospy</depend>
-  <depend>roscpp</depend>
+  
+  <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>std_msgs</depend>
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
+
+  <!-- for building custom messages -->
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>
