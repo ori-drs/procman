@@ -13,8 +13,8 @@ import procman_ros.sheriff as sheriff
 
 
 class SheriffHeadless(ScriptListener):
-    def __init__(self, config, spawn_deputy, script_name, script_done_action):
-        self.sheriff = Sheriff()
+    def __init__(self, config, spawn_deputy, script_name, script_done_action, nh):
+        self.sheriff = Sheriff(nh)
         self.script_manager = ScriptManager(self.sheriff)
         self.spawn_deputy = spawn_deputy
         self.spawned_deputy = None
@@ -70,7 +70,7 @@ class SheriffHeadless(ScriptListener):
 
         # start a local deputy?
         if self.spawn_deputy:
-            args = ["rosrun", "procman_ros", "deputy", "-i", "localhost"]
+            args = ["ros2", "run", "procman_ros", "deputy", "-i", "localhost"]
             self.spawned_deputy = subprocess.Popen(args)
         else:
             self.spawned_deputy = None
