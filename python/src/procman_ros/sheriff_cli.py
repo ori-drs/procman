@@ -150,7 +150,7 @@ def main():
     )
     parser.add_argument(
         "--on-script-complete",
-        choices=["exit", "observer"],
+        choices=["exit", "observe"],
         dest="script_done_action",
         help='Only valid if a script is specified.  If set to "exit", then the sheriff exits when '
         'the script is done executing. If set to "observe", then the sheriff self-demotes to '
