@@ -133,15 +133,15 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
 
     def set_background_color(self, color):
         self.base_color = color
-        self.stdout_textview.modify_base(Gtk.StateType.NORMAL, color)
-        self.stdout_textview.modify_base(Gtk.StateType.ACTIVE, color)
-        self.stdout_textview.modify_base(Gtk.StateType.PRELIGHT, color)
+        self.stdout_textview.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA.from_color(color))
+        self.stdout_textview.override_background_color(Gtk.StateFlags.ACTIVE, Gdk.RGBA.from_color(color))
+        self.stdout_textview.override_background_color(Gtk.StateFlags.PRELIGHT, Gdk.RGBA.from_color(color))
 
     def set_text_color(self, color):
         self.text_color = color
-        self.stdout_textview.modify_text(Gtk.StateType.NORMAL, color)
-        self.stdout_textview.modify_text(Gtk.StateType.ACTIVE, color)
-        self.stdout_textview.modify_text(Gtk.StateType.PRELIGHT, color)
+        self.stdout_textview.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA.from_color(color))
+        self.stdout_textview.override_color(Gtk.StateFlags.ACTIVE, Gdk.RGBA.from_color(color))
+        self.stdout_textview.override_color(Gtk.StateFlags.PRELIGHT, Gdk.RGBA.from_color(color))
 
     def set_font(self, font_str):
         self.font_str = font_str
@@ -276,7 +276,7 @@ class SheriffCommandConsole(Gtk.ScrolledWindow, SheriffListener):
         sep = Gtk.SeparatorMenuItem()
         menu.append(sep)
         sep.show()
-        mi = Gtk.MenuItem("_Clear")
+        mi = Gtk.MenuItem("Clear")
         menu.append(mi)
         mi.connect("activate", self._tb_clear)
         mi.show()
